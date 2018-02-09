@@ -1,0 +1,21 @@
+PLATFORM_COMMON_DIR = Platform/Common
+
+INCLUDES += -I $(PLATFORM_COMMON_DIR)/inc
+
+AS_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/*.S)
+C_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/*.c)
+CPP_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/*.cpp)
+RC_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/*.rc)
+DAT_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/dats/*.png)
+FNT_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/fonts/*.png)
+IMG1_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/images1/*.png)
+IMG8_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/images8/*.png)
+IMG16_SRCS += $(wildcard $(PLATFORM_COMMON_DIR)/images16/*.png)
+
+REBUILD_FORCING_MAKEFILES += $(PLATFORM_COMMON_DIR)/Makefile_platform_common.mkinc
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_COMMON_DIR)/inc/*.h)
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_COMMON_DIR)/inc/*.hpp)
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_COMMON_DIR)/inc/*.inc)
+RESOURCE_REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_COMMON_DIR)/rcfiles/*.*)
+
+DUMMY = 1

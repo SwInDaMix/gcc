@@ -1,0 +1,23 @@
+PLATFORM_DIR = Platform/10x
+
+VERY_COMMON_FLAGS += -DVER_PLATFORM="\"1.0.0001\""
+
+INCLUDES += -I $(PLATFORM_DIR)/inc
+
+AS_SRCS += $(wildcard $(PLATFORM_DIR)/*.S)
+C_SRCS += $(wildcard $(PLATFORM_DIR)/*.c)
+CPP_SRCS += $(wildcard $(PLATFORM_DIR)/*.cpp)
+RC_SRCS += $(wildcard $(PLATFORM_DIR)/*.rc)
+DAT_SRCS += $(wildcard $(PLATFORM_DIR)/dats/*.png)
+FNT_SRCS += $(wildcard $(PLATFORM_DIR)/fonts/*.png)
+IMG1_SRCS += $(wildcard $(PLATFORM_DIR)/images1/*.png)
+IMG8_SRCS += $(wildcard $(PLATFORM_DIR)/images8/*.png)
+IMG16_SRCS += $(wildcard $(PLATFORM_DIR)/images16/*.png)
+
+REBUILD_FORCING_MAKEFILES += $(PLATFORM_DIR)/Makefile_platform_10x.mkinc
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_DIR)/inc/*.h)
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_DIR)/inc/*.hpp)
+REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_DIR)/inc/*.inc)
+RESOURCE_REBUILD_FORCING_FILES += $(wildcard $(PLATFORM_DIR)/rcfiles/*.*)
+
+DUMMY = 1
