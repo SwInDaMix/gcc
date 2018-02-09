@@ -1,0 +1,49 @@
+STDPERIPH_DIR = _STM32F0xx_StdPeriph
+include ../$(STDPERIPH_DIR)/Makefile_stdperiph.mkinc
+include Makefile_common.mkinc
+#include ../_Common/Makefile_lto.mkinc
+
+CROSS=arm-none-eabi-
+
+BIN_DIR = bin_0xx_$(CFG_POSTFIX)
+EXTRN_OBJ_DIR = obj_0xx_extrn_$(CFG_POSTFIX)
+OBJ_DIR = obj_0xx_$(CFG_POSTFIX)
+TARGET = $(BIN_DIR)/EtaWirelessSecurity_$(TARGET_POSTFIX)_$(PLATFORM)
+LDSCRIPT = ld_$(PLATFORM)_$(CFG_POSTFIX)
+DEBUG =
+OPTIM = -Os
+TARGET_LNK = $(TARGET).elf
+
+VERY_COMMON_FLAGS +=\
+	-mthumb \
+
+C_COMMON_FLAGS +=\
+	-msoft-float \
+
+LINKER_FLAGS +=\
+	-msoft-float \
+	-nostartfiles \
+	-lc \
+	-lgcc \
+	-T $(LDSCRIPT).lds \
+
+LST_FLAGS +=\
+	-Mforce-thumb \
+
+WARNINGS +=\
+	-U__STRICT_ANSI__ \
+
+REBUILD_FORCING_MAKEFILES += Makefile_0xx_common.mkinc
+
+include Platform/0xx_$(CFG_POSTFIX)/Makefile_platform_0xx_$(CFG_POSTFIX).mkinc
+
+.PHONY : all
+all : build $(TARGET).bin $(TARGET).hex
+
+$(TARGET).bin : $(TARGET_LNK)
+	@$ $(OBJCOPY) $(TARGET_LNK) -O binary $(TARGET).bin
+
+$(TARGET).hex : $(TARGET_LNK)
+	@$ $(OBJCOPY) $(TARGET_LNK) -O ihex $(TARGET).hex
+
+include ../_Common/Makefile_build.mkinc

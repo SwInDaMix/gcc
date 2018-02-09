@@ -1,0 +1,39 @@
+include Makefile_common.mkinc
+ETAWIN_DIR = _EtaWin
+include ../$(ETAWIN_DIR)/Makefile_etawin.mkinc
+#include ../_Common/Makefile_lto.mkinc
+
+CROSS = $(SUBCROSS)w64-mingw32-
+PLATFORM=WINDOWS
+
+TARGET = $(BIN_DIR)/EtaOscilloscope_emulator
+DEBUG = -g
+
+TARGET_LNK = $(TARGET).dbg
+
+VERY_COMMON_FLAGS +=\
+	-D_WIN32_IE=0x0500 \
+	-DWINVER=0x0500 \
+
+C_COMMON_FLAGS +=\
+
+LINKER_FLAGS +=\
+	-static-libgcc \
+	-static-libstdc++ \
+	-lcomctl32 \
+	-lgdi32 \
+	-lwinmm \
+
+WARNINGS +=\
+
+REBUILD_FORCING_MAKEFILES += Makefile_windows_emulator.mkinc
+
+include Platform/Windows/Makefile_platform_windows.mkinc
+
+.PHONY : all
+all : build $(TARGET).exe
+
+$(TARGET).exe : $(TARGET_LNK)
+	@$ $(OBJCOPY) -S $(TARGET_LNK) $(TARGET).exe
+
+include ../_Common/Makefile_build.mkinc

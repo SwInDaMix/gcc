@@ -1,0 +1,69 @@
+ETA8_DIR = _Eta8
+ETAAVR_DIR = _EtaAVR
+
+VERY_COMMON_FLAGS +=\
+	-mtiny-stack \
+	-mrelax \
+	-D__PLATFORM_$(PLATFORM)__ \
+	-DDEBUG \
+	-pipe \
+
+C_COMMON_FLAGS +=\
+	-gdwarf-2 \
+	-fno-common \
+	-fomit-frame-pointer \
+	-fwrapv \
+	-fstrict-overflow \
+
+COMPILER_COMMON_FLAGS +=\
+	$(DEBUG) $(OPTIM) $(WARNINGS) $(INCLUDES) \
+	$(VERY_COMMON_FLAGS) \
+	-fdata-sections \
+	-ffunction-sections \
+	-ffreestanding \
+
+AS_FLAGS +=\
+	$(COMPILER_COMMON_FLAGS) \
+	-std=c11 \
+
+C_FLAGS +=\
+	$(COMPILER_COMMON_FLAGS) \
+	$(C_COMMON_FLAGS) \
+	-std=c11 \
+
+CPP_FLAGS +=\
+	$(COMPILER_COMMON_FLAGS) \
+	$(C_COMMON_FLAGS) \
+	-std=c++11 \
+	-fno-rtti \
+	-fno-threadsafe-statics \
+	-Wno-psabi \
+	-fnothrow-opt \
+	-fno-exceptions \
+
+RC_FLAGS +=\
+	$(INCLUDES) \
+
+LINKER_FLAGS +=\
+	$(DEBUG) $(OPTIM) $(INCLUDES) \
+	$(VERY_COMMON_FLAGS) \
+	-nostartfiles \
+	-Wl,-Map=$(TARGET).map \
+	-Wl,--gc-sections \
+
+LST_FLAGS +=\
+	-hdS \
+
+WARNINGS +=\
+	-Wall \
+	-Wextra \
+	-Wpedantic \
+	-Wno-unused-parameter \
+	-Wno-vla \
+
+REBUILD_FORCING_MAKEFILES += Makefile_common.mkinc
+
+include ../$(ETA8_DIR)/Makefile_eta8.mkinc
+include ../$(ETAAVR_DIR)/Makefile_etaavr.mkinc
+include Config/Makefile_config.mkinc
+include Application/Makefile_application.mkinc

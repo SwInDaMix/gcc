@@ -1,0 +1,8 @@
+CONFIG_DIR = Config
+
+INCLUDES += -I $(CONFIG_DIR)
+
+REBUILD_FORCING_MAKEFILES += $(CONFIG_DIR)/Makefile_config.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard $(CONFIG_DIR)/*.h)
+
+DUMMY = 1

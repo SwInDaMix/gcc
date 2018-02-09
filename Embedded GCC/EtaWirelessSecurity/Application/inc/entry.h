@@ -1,0 +1,109 @@
+/********************* (C) 2014 Eta Software House. ********************
+ Author    : Sw
+ File Name : entry.hpp
+ ***********************************************************************/
+
+#include "config.h"
+#ifdef SECURITY_SERVER
+#include "eta_rf_security_server.h"
+#endif
+#ifdef SECURITY_CLIENT
+#include "eta_rf_security_client.h"
+#endif
+
+typedef enum {
+	SecurityAction_CloseDoor = 1,
+	SecurityAction_OpenDoor,
+	SecurityAction_CloseDoorForced,
+	SecurityAction_OpenDoorForced,
+	SecurityAction_DomophoneAutoOpener,
+} eSecurityAction_Test;
+
+typedef enum {
+	Log_OrdinalEvent,
+	Log_SecurityAlert,
+	Log_SystemError,
+	Log_HardwareFailure,
+} eLog;
+
+typedef enum {
+	FRAME_CMD_DEBUG_STRING,
+	#ifdef SECURITY_SERVER
+	FRAME_CMD_ALLOW_REGISTRATION,
+	FRAME_CMD_TEST_RFINFO,
+	FRAME_CMD_TEST_EEPROM_PAGES_WRITE,
+	FRAME_CMD_TEST_EEPROM_PAGES_READ,
+	FRAME_CMD_TEST_EEPROM_ERASE,
+	FRAME_CMD_TEST_GET_ADC,
+	FRAME_CMD_TEST_SWITCH_SINK,
+	FRAME_CMD_TEST_LOCK,
+	FRAME_CMD_TEST_UNLOCK,
+	FRAME_CMD_TEST_GETLOCKSTATUS,
+
+	FRAME_CMD_ORDINALEVENT_CHALLENGE_INITIATED = 0x20,
+	FRAME_CMD_ORDINALEVENT_CHALLENGE_WON_WITH_PRIMARY_KEY,
+	FRAME_CMD_ORDINALEVENT_CHALLENGE_WON_WITH_SECONDARY_KEY,
+	FRAME_CMD_ORDINALEVENT_CHALLENGE_KEY_REPLACEMENT,
+	FRAME_CMD_ORDINALEVENT_CHALLENGE_ANOTHER_TRY_KEY_REPLACEMENT,
+	FRAME_CMD_ORDINALEVENT_REGISTRATION_INITIATED,
+	FRAME_CMD_ORDINALEVENT_REGISTRATION_WON_KEY_REPLACEMENT,
+	FRAME_CMD_ORDINALEVENT_REGISTRATION_CONFIRMED,
+
+	FRAME_CMD_SECURITYFAIL_PIPE_ALREADY_REQUESTED = 0x40,
+	FRAME_CMD_SECURITYFAIL_COMMUNICATION_FAILED,
+	FRAME_CMD_SECURITYFAIL_SESSION_IS_NOT_INITIATED,
+	FRAME_CMD_SECURITYFAIL_SESSION_WRONG_ACCESSOR,
+	FRAME_CMD_SECURITYFAIL_SESSION_ALREADY_FAILED,
+	FRAME_CMD_SECURITYFAIL_SESSION_TIMEOUT,
+	FRAME_CMD_SECURITYFAIL_UNEXPECTED_RESPONSE_FOR_SESSION,
+	FRAME_CMD_SECURITYFAIL_NO_REGISTRATION_FOR_CLIENT,
+	FRAME_CMD_SECURITYFAIL_NO_PROPER_ACTION_FOR_BUTTONS,
+	FRAME_CMD_SECURITYFAIL_CLIENT_IS_NOT_ACTIVE,
+	FRAME_CMD_SECURITYFAIL_CHALLENGE_LOST,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_NOT_ALLOWED,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_FROM_WRONG_CLIENT,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_ALREADY_EXISTS,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_LOST,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_DENIED,
+	FRAME_CMD_SECURITYFAIL_REGISTRATION_ALLOWANCE_TIMEOUT,
+	FRAME_CMD_SECURITYFAIL_UNEXPECTED_COMMAND,
+
+	FRAME_CMD_GET_SERVER_INFO = 0x80,
+	FRAME_CMD_GET_NEXT_CLIENT_REGISTER,
+	FRAME_CMD_GET_CLIENT_REGISTER,
+	FRAME_CMD_SET_CLIENT_REGISTER,
+	FRAME_CMD_CLOBBER_CLIENT_REGISTER,
+	FRAME_CMD_SET_CLIENT_REGISTER_ACTIVE,
+	FRAME_CMD_GET_CLIENT_REGISTERING,
+	#endif
+} sFrameCmd;
+
+#ifdef SECURITY_SERVER
+typedef struct __attribute__((packed)) {
+	uint32_t MaxClientRegistersCount;
+} sFrame_GetServerInfo_Response;
+
+typedef struct __attribute__((packed)) {
+	bool StartFromBeginning;
+} sFrame_GetNextClientRegister_Request;
+
+typedef struct __attribute__((packed)) {
+	sSecurityID ID;
+} sFrame_ClientRegister_Request;
+
+typedef struct __attribute__((packed)) {
+	sSecurityID ID;
+	struct __attribute__((packed)) {
+		eSecurityAction Actions[SECURITY_CLIENT_ACTION_ENTRIES_COUNT];
+		char Description[SECURITY_CLIENT_DESCRIPTION_COUNT];
+	};
+} sFrame_ClientRegisterData_Request;
+
+typedef struct __attribute__((packed)) {
+	sSecurityID ID;
+	bool IsActive;
+} sFrame_SetClientRegisterActive_Request;
+#endif
+
+void PeriodicHandler();
+void EtaRemoteControlKeyChainMainLoop(volatile bool *is_abort_requested, volatile bool *is_inited, void (*yield)());

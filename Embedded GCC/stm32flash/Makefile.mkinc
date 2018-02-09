@@ -1,0 +1,29 @@
+include Makefile_common.mkinc
+
+CROSS = $(SUBCROSS)w64-mingw32-
+PLATFORM=WINDOWS
+
+TARGET = $(BIN_DIR)/stm32flash
+DEBUG = -g
+
+TARGET_LNK = $(TARGET).dbg
+
+VERY_COMMON_FLAGS +=\
+	-D_WIN32_IE=0x0500 \
+	-DWINVER=0x0500 \
+
+C_COMMON_FLAGS +=\
+
+LINKER_FLAGS +=\
+	-static-libgcc \
+	-static-libstdc++ \
+
+REBUILD_FORCING_MAKEFILES += Makefile.mkinc
+
+.PHONY : all
+all : build $(TARGET).exe
+
+$(TARGET).exe : $(TARGET_LNK)
+	@$ $(OBJCOPY) -S $(TARGET_LNK) $(TARGET).exe
+
+include ../_Common/Makefile_build.mkinc
