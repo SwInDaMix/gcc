@@ -1,0 +1,3 @@
+VERY_COMMON_FLAGS += -fuse-linker-plugin -flto
+
+LINKER_FLAGS += -fwhole-program

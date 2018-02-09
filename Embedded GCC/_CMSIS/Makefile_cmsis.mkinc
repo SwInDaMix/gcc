@@ -1,0 +1,6 @@
+INCLUDES += -I ../$(CMSIS_DIR)
+
+REBUILD_FORCING_MAKEFILES += ../$(CMSIS_DIR)/Makefile_cmsis.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(CMSIS_DIR)/*.h)
+
+DUMMY = 1

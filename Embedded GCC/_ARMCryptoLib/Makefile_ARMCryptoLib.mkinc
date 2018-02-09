@@ -1,0 +1,16 @@
+INCLUDES += -I ../$(ARMCRYPTOLIB_DIR) -I ../$(ARMCRYPTOLIB_DIR)/gf256mul -I ../$(ARMCRYPTOLIB_DIR)/memxor
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/gf256mul/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/gf256mul/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/gf256mul/*.cpp))
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/memxor/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/memxor/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/memxor/*.cpp))
+
+REBUILD_FORCING_MAKEFILES += ../$(ARMCRYPTOLIB_DIR)/Makefile_ARMCryptoLib.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/gf256mul/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/gf256mul/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/memxor/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/memxor/*.hpp)
+
+DUMMY = 1

@@ -1,0 +1,21 @@
+VERY_COMMON_FLAGS += -DVER_ETA8="\"1.0.0001\""
+
+INCLUDES += -I ../$(ETA8_DIR)/inc
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/*.cpp))
+EXTRN_RC_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/*.rc))
+EXTRN_DAT_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/dats/*.dat))
+EXTRN_IMG1_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/images1/*.png))
+EXTRN_IMG8_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/images8/*.png))
+EXTRN_IMG16_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/images16/*.png))
+EXTRN_FNT_SRCS += $(subst ../,,$(wildcard ../$(ETA8_DIR)/fonts/*.png))
+
+REBUILD_FORCING_MAKEFILES += ../$(ETA8_DIR)/Makefile_eta8.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA8_DIR)/inc/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA8_DIR)/inc/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA8_DIR)/inc/*.inc)
+EXTRN_RESOURCE_REBUILD_FORCING_FILES += $(wildcard ../$(ETA8_DIR)/rcfiles/*.*)
+
+DUMMY = 1

@@ -1,0 +1,21 @@
+VERY_COMMON_FLAGS += -DVER_USBLIB="\"2.2.1\""
+
+INCLUDES += -I ../$(USBLIB_DIR)/inc
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/*.cpp))
+EXTRN_RC_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/*.rc))
+EXTRN_DAT_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/dats/*.dat))
+EXTRN_IMG1_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/images1/*.png))
+EXTRN_IMG8_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/images8/*.png))
+EXTRN_IMG16_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/images16/*.png))
+EXTRN_FNT_SRCS += $(subst ../,,$(wildcard ../$(USBLIB_DIR)/fonts/*.png))
+
+REBUILD_FORCING_MAKEFILES += ../$(USBLIB_DIR)/Makefile_usblib.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(USBLIB_DIR)/inc/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(USBLIB_DIR)/inc/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(USBLIB_DIR)/inc/*.inc)
+EXTRN_RESOURCE_REBUILD_FORCING_FILES += $(wildcard ../$(USBLIB_DIR)/rcfiles/*.*)
+
+DUMMY = 1

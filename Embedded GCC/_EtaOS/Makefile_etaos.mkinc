@@ -1,0 +1,21 @@
+VERY_COMMON_FLAGS += -DVER_ETAOS="\"1.0.0001\""
+
+INCLUDES += -I ../$(ETAOS_DIR)/inc
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ETAOS_DIR)/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ETAOS_DIR)/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ETAOS_DIR)/*.cpp))
+EXTRN_RC_SRCS += $(subst ../,,$(wildcard ../$(ETAOS_DIR)/*.rc))
+EXTRN_DAT_SRCS += $(subst ../,,$(wildcard ../$(ETAOS_DIR)/dats/*.dat))
+EXTRN_IMG1_SRCS += $(wildcard ../$(ETAOS_DIR)/images1/*.png)
+EXTRN_IMG8_SRCS += $(wildcard ../$(ETAOS_DIR)/images8/*.png)
+EXTRN_IMG16_SRCS += $(wildcard ../$(ETAOS_DIR)/images16/*.png)
+EXTRN_FNT_SRCS += $(wildcard ../$(ETAOS_DIR)/fonts/*.png)
+
+REBUILD_FORCING_MAKEFILES += ../$(ETAOS_DIR)/Makefile_etaos.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETAOS_DIR)/inc/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETAOS_DIR)/inc/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETAOS_DIR)/inc/*.inc)
+EXTRN_RESOURCE_REBUILD_FORCING_FILES += $(wildcard ../$(ETAOS_DIR)/rcfiles/*.*)
+
+DUMMY = 1

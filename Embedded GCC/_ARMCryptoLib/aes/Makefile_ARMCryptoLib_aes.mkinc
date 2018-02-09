@@ -1,0 +1,11 @@
+INCLUDES += -I ../$(ARMCRYPTOLIB_DIR)/aes
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/aes/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/aes/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ARMCRYPTOLIB_DIR)/aes/*.cpp))
+
+REBUILD_FORCING_MAKEFILES += ../$(ARMCRYPTOLIB_DIR)/aes/Makefile_ARMCryptoLib_aes.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/aes/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ARMCRYPTOLIB_DIR)/aes/*.hpp)
+
+DUMMY = 1

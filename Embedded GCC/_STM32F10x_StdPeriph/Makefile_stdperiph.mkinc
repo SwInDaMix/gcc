@@ -1,0 +1,21 @@
+VERY_COMMON_FLAGS += -DVER_STDPERIPH="\"3.5.0\""
+
+INCLUDES += -I ../$(STDPERIPH_DIR)/inc
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/*.cpp))
+EXTRN_RC_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/*.rc))
+EXTRN_DAT_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/dats/*.dat))
+EXTRN_IMG1_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/images1/*.png))
+EXTRN_IMG8_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/images8/*.png))
+EXTRN_IMG16_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/images16/*.png))
+EXTRN_FNT_SRCS += $(subst ../,,$(wildcard ../$(STDPERIPH_DIR)/fonts/*.png))
+
+REBUILD_FORCING_MAKEFILES += ../$(STDPERIPH_DIR)/Makefile_stdperiph.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(STDPERIPH_DIR)/inc/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(STDPERIPH_DIR)/inc/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(STDPERIPH_DIR)/inc/*.inc)
+EXTRN_RESOURCE_REBUILD_FORCING_FILES += $(wildcard ../$(STDPERIPH_DIR)/rcfiles/*.*)
+
+DUMMY = 1
