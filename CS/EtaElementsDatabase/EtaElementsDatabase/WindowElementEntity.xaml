@@ -1,0 +1,245 @@
+﻿<Window x:Class="EtaElementsDatabase.WindowElementEntity"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:EtaElementsDatabase"
+        DataContext="{Binding RelativeSource={RelativeSource Self}, Path=ElementEntity}" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Title="{Binding Path=NameTotal, StringFormat='Edit element \{0\}'}" SizeToContent="WidthAndHeight" ResizeMode="CanMinimize" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True">
+    <Window.Resources>
+        <local:mvc_ElementNameCanAdd x:Key="mvc_ElementNameCanAdd"/>
+        <local:mvc_ParameterEntities x:Key="mvc_ParameterEntities"/>
+        <local:mvc_ParameterEntity x:Key="mvc_ParameterEntity"/>
+        <local:svc_ParameterEntityTextBoxVisibility x:Key="svc_ParameterEntityTextBoxVisibility"/>
+        <local:svc_ParameterEntityComboBoxVisibility x:Key="svc_ParameterEntityComboBoxVisibility"/>
+        <local:svc_ParameterEntityComboBoxIsEditable x:Key="svc_ParameterEntityComboBoxIsEditable"/>
+        <local:svc_ParameterEntityToButtonText x:Key="svc_ParameterEntityToButtonText"/>
+        <local:mvc_ElementAvailablePackages x:Key="mvc_ElementAvailablePackages"/>
+        <local:svc_ElementPackageAddVisibility x:Key="svc_ElementPackageAddVisibility"/>
+        <local:svc_ElementPackageCanAdd x:Key="svc_ElementPackageCanAdd"/>
+        <local:mvc_PlacementRowColumn x:Key="mvc_PlacementRowColumn"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <TextBlock Padding="6,0,0,0" FontWeight="Bold" FontSize="20" Text="{Binding Path=NameTotal}"></TextBlock>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <GroupBox Margin="3" Header="Names">
+                <DockPanel>
+                    <ItemsControl DockPanel.Dock="Top" Focusable="False" Grid.IsSharedSizeScope="True" ItemsSource="{Binding Path=Names}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Margin="3,3,0,3" Text="{Binding Path=Name, ValidatesOnExceptions=True}"></TextBox>
+                                    <Button Grid.Column="1" Margin="0,3,3,3" Padding="0" Click="RemoveName_OnClick" Tag="{Binding Path=Name}">
+                                        <Button.Content>
+                                            <Image Source="{StaticResource png_Delete}" />
+                                        </Button.Content>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="TB_NewName" Margin="3,3,0,3"></TextBox>
+                            <Button Grid.Column="1" Margin="0,3,3,3" Padding="0" Click="AddName_OnClick">
+                                <Button.Content>
+                                    <local:AutoGreyableImage Source="{StaticResource png_Add}" />
+                                </Button.Content>
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource mvc_ElementNameCanAdd}">
+                                        <Binding Path="Names"/>
+                                        <Binding ElementName="TB_NewName" Path="Text"/>
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </DockPanel>
+            </GroupBox>
+            <GroupBox Grid.Column="1" Margin="3" Header="Parameters">
+                <ItemsControl Focusable="False" Grid.IsSharedSizeScope="True">
+                    <ItemsControl.ItemsSource>
+                        <MultiBinding Converter="{StaticResource mvc_ParameterEntities}">
+                            <Binding Path="ElementItem.Parameters"/>
+                            <Binding Path="ParameterEntities"/>
+                        </MultiBinding>
+                    </ItemsControl.ItemsSource>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.Tag>
+                                    <MultiBinding Converter="{StaticResource mvc_ParameterEntity}">
+                                        <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType=ItemsControl}" Path="DataContext"></Binding>
+                                        <Binding Path="ParameterName"></Binding>
+                                    </MultiBinding>
+                                </Grid.Tag>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition SharedSizeGroup="ssg_ParamNames" Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition MinWidth="70"></ColumnDefinition>
+                                    <ColumnDefinition SharedSizeGroup="ssg_ParamButtons" Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock SnapsToDevicePixels="True" VerticalAlignment="Center" Margin="3,0,3,0" FontWeight="Bold" Text="{Binding Path=ParameterName, StringFormat='\{0\}:'}"></TextBlock>
+                                <TextBox Grid.Column="1" Margin="3,3,0,3" DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}" Text="{Binding Path=Tag.StringValue, ValidatesOnExceptions=True}" Visibility="{Binding Path=Tag, Converter={StaticResource svc_ParameterEntityTextBoxVisibility}}"/>
+                                <ComboBox Grid.Column="1" Margin="3,3,0,3" DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}" IsEditable="{Binding Path=Tag.Parameter.RegularExpressionForOther, Converter={StaticResource svc_ParameterEntityComboBoxIsEditable}}" ItemsSource="{Binding Path=Tag.Parameter.Values}" Text="{Binding Path=Tag.StringValue, ValidatesOnExceptions=True}" Visibility="{Binding Path=Tag, Converter={StaticResource svc_ParameterEntityComboBoxVisibility}}"/>
+                                <Button Grid.Column="2" Margin="0,3,3,3" Padding="0" DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}" Content="{Binding Path=Tag, Converter={StaticResource svc_ParameterEntityToButtonText}}" Click="AddOrRemoveParameter_OnClick"></Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </GroupBox>
+            <GroupBox Grid.Column="2" Margin="3" Header="Packages">
+                <StackPanel Orientation="Horizontal">
+                    <DockPanel x:Name="DP_Packages">
+                        <ItemsControl DockPanel.Dock="Top" Focusable="False" Grid.IsSharedSizeScope="True" ItemsSource="{Binding Path=PackageEntities}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ToolTip>
+                                            <ToolTip>
+                                                <ContentPresenter Content="{Binding Path=Package.PackageImages}" ContentTemplate="{StaticResource tmpl_ToolTipPackageImages}" />
+                                            </ToolTip>
+                                        </Grid.ToolTip>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition SharedSizeGroup="ssg_PackageNames"  Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition MinWidth="50"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Margin="3" VerticalAlignment="Center" Text="{Binding Path=Package.PackageName, StringFormat='\{0\}:'}"></TextBlock>
+                                        <TextBox Grid.Column="1" Margin="3,3,0,3" Text="{Binding Path=Count, ValidatesOnExceptions=True}"></TextBox>
+                                        <Button Grid.Column="2" Margin="0,3,3,3" Padding="0" Click="RemovePackage_OnClick" Tag="{Binding Path=Package.PackageName}">
+                                            <Button.Content>
+                                                <Image Source="{StaticResource png_Delete}" />
+                                            </Button.Content>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
+                            <Grid Visibility="{Binding RelativeSource={RelativeSource Self}, Path=Tag, Converter={StaticResource svc_ElementPackageAddVisibility}}">
+                                <Grid.Tag>
+                                    <MultiBinding Converter="{StaticResource mvc_ElementAvailablePackages}">
+                                        <Binding Source="{x:Static local:CElementItem+CPackage.Packages}"/>
+                                        <Binding Path="PackageEntities"/>
+                                    </MultiBinding>
+                                </Grid.Tag>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox x:Name="CB_AvailablePackages" Margin="3" MinWidth="100" HorizontalContentAlignment="Stretch" ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}, Path=Tag}">
+                                    <ComboBox.ToolTip>
+                                        <ToolTip DataContext="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.SelectedItem}">
+                                            <ContentPresenter Content="{Binding Path=PackageImages}" ContentTemplate="{StaticResource tmpl_ToolTipPackageImages}" />
+                                        </ToolTip>
+                                    </ComboBox.ToolTip>
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Path=PackageName}">
+                                                <TextBlock.ToolTip>
+                                                    <ToolTip>
+                                                        <ContentPresenter Content="{Binding Path=PackageImages}" ContentTemplate="{StaticResource tmpl_ToolTipPackageImages}"/>
+                                                    </ToolTip>
+                                                </TextBlock.ToolTip>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Margin="0,3,3,3" Padding="0" IsEnabled="{Binding ElementName=CB_AvailablePackages, Path=SelectedItem, Converter={StaticResource svc_ElementPackageCanAdd}}" Click="AddPackage_OnClick">
+                                    <Button.Content>
+                                        <local:AutoGreyableImage Source="{StaticResource png_Add}" />
+                                    </Button.Content>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <GroupBox Margin="3" Header="Comment">
+                <TextBox Margin="3" AcceptsReturn="True" Text="{Binding Path=Comment}"></TextBox>
+            </GroupBox>
+            <StackPanel Grid.Column="1">
+                <GroupBox Margin="3" Header="Placement">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Margin="3" MinWidth="70" IsEditable="True" Text="{Binding Path=PlacementBox, UpdateSourceTrigger=LostFocus}" ItemsSource="{Binding Source={x:Static local:CElement.PlacementBoxes}}"></ComboBox>
+                        <TextBox Grid.Column="1" Margin="3" TextAlignment="Center" MinWidth="70">
+                            <TextBox.Text>
+                                <MultiBinding Converter="{StaticResource mvc_PlacementRowColumn}" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                                    <Binding ValidatesOnExceptions="True" Path="PlacementRow" />
+                                    <Binding Path="PlacementColumn" />
+                                </MultiBinding>
+                            </TextBox.Text>
+                        </TextBox>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Margin="3" Header="Datasheets">
+                    <StackPanel>
+                        <ItemsControl Focusable="False" HorizontalContentAlignment="Stretch" ItemsSource="{Binding Path=Datasheets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Margin="3,3,0,3" Text="{Binding Path=Filename, ValidatesOnExceptions=True}"></TextBox>
+                                        <TextBox Grid.Column="1" Margin="0,3,0,3" Text="{Binding Path=Page, ValidatesOnExceptions=True}"></TextBox>
+                                        <Button Grid.Column="2" Margin="0,3,0,3" Padding="0" Click="ViewDatasheet_OnClick">
+                                            <Button.Content>
+                                                <Image Source="{StaticResource png_View}" />
+                                            </Button.Content>
+                                        </Button>
+                                        <Button Grid.Column="3" Margin="0,3,3,3" Padding="0" Click="RemoveDatasheet_OnClick">
+                                            <Button.Content>
+                                                <Image Source="{StaticResource png_Delete}" />
+                                            </Button.Content>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="TB_DatasheetFilename" Margin="3,3,0,3"></TextBox>
+                            <Button Grid.Column="2" Margin="0,3,3,3" Padding="0" Click="AddDatasheet_OnClick">
+                                <Button.Content>
+                                    <Image Source="{StaticResource png_Add}" />
+                                </Button.Content>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

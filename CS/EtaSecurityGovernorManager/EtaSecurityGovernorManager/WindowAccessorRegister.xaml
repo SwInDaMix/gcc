@@ -1,0 +1,109 @@
+﻿<Window x:Class="EtaSecurityGovernorManager.WindowAccessorRegister"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:governorman="clr-namespace:EtaSecurityGovernorManager"
+        SnapsToDevicePixels="True" ResizeMode="CanMinimize" SizeToContent="WidthAndHeight" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
+        DataContext="{Binding RelativeSource={RelativeSource Self}, Path=AccessorRegister}">
+    <Window.Title>
+        <MultiBinding StringFormat="Accessor Register {0} - {1}">
+            <Binding Path="ID"/>
+            <Binding Path="Description" />
+        </MultiBinding>
+    </Window.Title>
+    <Grid Margin="3">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Border BorderThickness="1" CornerRadius="5" BorderBrush="DeepSkyBlue" Background="Silver" Padding="4,0,4,0" Margin="0,0,0,3">
+                <TextBlock HorizontalAlignment="Center" Text="General Info" FontSize="16" FontWeight="Bold" Foreground="Blue"></TextBlock>
+            </Border>
+            <Border BorderThickness="1" CornerRadius="5" BorderBrush="Silver" Padding="3">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="ssg_AccessorRegisterIDKeysDescription" Width="Auto"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Description:" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Right"></TextBlock>
+                    <TextBox Grid.Row="0" Grid.Column="1" BorderBrush="Black" Text="{Binding Path=Description, UpdateSourceTrigger=PropertyChanged}" Margin="10,0,0,0" FontSize="28" FontWeight="Bold" VerticalAlignment="Center"></TextBox>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="ID:" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right"></TextBlock>
+                    <DockPanel Grid.Row="1" Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" FontFamily="Consolas" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Text="{Binding Path=ID}"></TextBlock>
+                        <Button Margin="10,0,0,0" Content="{Binding IsActive, Converter={StaticResource svc_IsActiveToButtonActionText}}" Click="ButtonToggleActive_OnClick" VerticalAlignment="Center" ></Button>
+                    </DockPanel>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Primary Key:" VerticalAlignment="Center" HorizontalAlignment="Right"></TextBlock>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="10,0,0,0" FontFamily="Consolas" FontWeight="Bold" VerticalAlignment="Center" Text="{Binding Path=PrimaryKey}"></TextBlock>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Secondary Key:" VerticalAlignment="Center" HorizontalAlignment="Right"></TextBlock>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="10,0,0,0" FontFamily="Consolas" FontWeight="Bold" VerticalAlignment="Center" Text="{Binding Path=SecondaryKey}"></TextBlock>
+                </Grid>
+            </Border>
+        </StackPanel>
+        <StackPanel Grid.Row="1">
+            <Border BorderThickness="1" CornerRadius="5" BorderBrush="DeepSkyBlue" Background="Silver" Padding="4,0,4,0" Margin="0,3,0,3">
+                <TextBlock HorizontalAlignment="Center" Text="Actions" FontSize="16" FontWeight="Bold" Foreground="Blue"></TextBlock>
+            </Border>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="3"></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <Border BorderThickness="1" CornerRadius="5" BorderBrush="Chocolate" Padding="4,0,4,0">
+                        <TextBlock HorizontalAlignment="Center" Text="Main Actions"></TextBlock>
+                    </Border>
+                    <StackPanel>
+                        <governorman:UC_ActionsMain Label="1" Action="{Binding Path=ActionButton1, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsMain>
+                        <governorman:UC_ActionsMain Label="2" Action="{Binding Path=ActionButton2, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsMain>
+                        <governorman:UC_ActionsMain Label="3" Action="{Binding Path=ActionButton3, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsMain>
+                        <governorman:UC_ActionsMain Label="4" Action="{Binding Path=ActionButton4, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsMain>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Border BorderThickness="1" CornerRadius="5" BorderBrush="Chocolate" Padding="4,0,4,0">
+                        <TextBlock HorizontalAlignment="Center" Text="Long Press Actions"></TextBlock>
+                    </Border>
+                    <StackPanel>
+                        <governorman:UC_ActionsLong Label="1   " Action="{Binding Path=ActionButtonLong1, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label=" 2  " Action="{Binding Path=ActionButtonLong2, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="12  " Action="{Binding Path=ActionButtonLong12, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="  3 " Action="{Binding Path=ActionButtonLong3, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="1 3 " Action="{Binding Path=ActionButtonLong13, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label=" 23 " Action="{Binding Path=ActionButtonLong23, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="123 " Action="{Binding Path=ActionButtonLong123, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="   4" Action="{Binding Path=ActionButtonLong4, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="1  4" Action="{Binding Path=ActionButtonLong14, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label=" 2 4" Action="{Binding Path=ActionButtonLong24, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="12 4" Action="{Binding Path=ActionButtonLong124, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="  34" Action="{Binding Path=ActionButtonLong34, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="1 34" Action="{Binding Path=ActionButtonLong134, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label=" 234" Action="{Binding Path=ActionButtonLong234, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                        <governorman:UC_ActionsLong Label="1234" Action="{Binding Path=ActionButtonLong1234, Mode=TwoWay}" Margin="0,3,0,0"></governorman:UC_ActionsLong>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+        <DockPanel Grid.Row="2" Margin="0,3,0,0">
+            <StackPanel DockPanel.Dock="Left">
+                <Button Content="Allow Registartion" Padding="20,10,20,10" Click="ButtonAllowRegistration_OnClick"></Button>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Margin="40,0,0,0">
+                <Button Content="Restore Original" Visibility="{Binding IsModified, Converter={StaticResource svc_BoolToVisible}}" Padding="20,10,20,10" Margin="0,0,20,0" Click="ButtonRestore_OnClick"></Button>
+                <Button Content="Cancel" IsCancel="True" Padding="20,10,20,10" Margin="3,0,0,0"></Button>
+                <Button Content="Apply" IsEnabled="{Binding Path=IsModified}" Padding="20,10,20,10" Margin="3,0,0,0" Click="ButtonApply_OnClick"></Button>
+                <Button Content="OK" IsDefault="True" IsEnabled="{Binding Path=IsModified}" Padding="20,10,20,10" Margin="3,0,0,0" Click="ButtonOK_OnClick"></Button>
+            </StackPanel>
+        </DockPanel>
+
+    </Grid>
+</Window>

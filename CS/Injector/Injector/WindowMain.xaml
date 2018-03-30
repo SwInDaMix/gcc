@@ -1,0 +1,146 @@
+﻿<Window x:Class="Injector.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:injector="clr-namespace:Injector"
+        xmlns:ports="clr-namespace:System.IO.Ports;assembly=System"
+        Title="Управление инжектором" SnapsToDevicePixels="True" ResizeMode="CanMinimize"
+        DataContext="{Binding RelativeSource={RelativeSource Self}, Path=InjectorControl}" SizeToContent="WidthAndHeight">
+    <Window.Resources>
+        <ObjectDataProvider ObjectType="{x:Type ports:SerialPort}" MethodName="GetPortNames" x:Key="ComPorts"/>
+        <injector:svc_IsConnectedToText x:Key="svc_IsConnectedToText"/>
+        <injector:svc_IsConnectedToVisible x:Key="svc_IsConnectedToVisible"/>
+        <injector:svc_IsValidToVisible x:Key="svc_IsValidToVisible"/>
+        <injector:svc_IsValidToVisibleInverted x:Key="svc_IsValidToVisibleInverted"/>
+        <injector:svc_FrequencyLogarithmic x:Key="svc_FrequencyLogarithmic"/>
+        <injector:svc_DutyCycle x:Key="svc_DutyCycle"/>
+        <injector:svc_PhaseDegree x:Key="svc_PhaseDegree"/>
+        <injector:svc_PhasePercentage x:Key="svc_PhasePercentage"/>
+        <DataTemplate x:Key="tmpl_InjectorFirstSettings" DataType="{x:Type injector:CSettings+CInjectorFirstSettings}">
+            <Grid Margin="0,3,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" MinWidth="130"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Border BorderThickness="2" BorderBrush="Green" CornerRadius="3" Padding="2" Margin="0,0,3,0">
+                    <Slider Minimum="0" Maximum="255" Value="{Binding Path=DutyCycle}" IsMoveToPointEnabled="True">
+                        <Slider.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                            </TransformGroup>
+                        </Slider.LayoutTransform>
+                    </Slider>
+                </Border>
+                <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding Path=DutyCycle, StringFormat='\{0:N1\}', Converter={StaticResource svc_DutyCycle}, ValidatesOnExceptions=True}" TextAlignment="Right" VerticalAlignment="Center"></TextBox>
+                    <TextBlock Grid.Column="1" Text="%" Foreground="Black" VerticalAlignment="Center"></TextBlock>
+                </Grid>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="tmpl_InjectorSettings" DataType="{x:Type injector:CSettings+CInjectorSettings}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid Margin="0,3,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="Auto" MinWidth="130"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Border BorderThickness="2" BorderBrush="Red" CornerRadius="3" Padding="2" Margin="0,0,3,0">
+                        <Slider Minimum="0" Maximum="255" Value="{Binding Path=Phase}" IsMoveToPointEnabled="True">
+                            <Slider.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                </TransformGroup>
+                            </Slider.LayoutTransform>
+                        </Slider>
+                    </Border>
+                    <Grid Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Path=Phase, StringFormat='\{0:N1\}', Converter={StaticResource svc_PhaseDegree}, ValidatesOnExceptions=True}" TextAlignment="Right" VerticalAlignment="Center"></TextBox>
+                        <TextBlock Grid.Column="1" Text="°" Foreground="Black" VerticalAlignment="Center" Margin="0,0,3,0"></TextBlock>
+                        <TextBox Grid.Column="2" Text="{Binding Path=Phase, StringFormat='\{0:N1\}', Converter={StaticResource svc_PhasePercentage}, ValidatesOnExceptions=True}" TextAlignment="Right" VerticalAlignment="Center"></TextBox>
+                        <TextBlock Grid.Column="3" Text="%" Foreground="Black" VerticalAlignment="Center"></TextBlock>
+                    </Grid>
+                </Grid>
+                <ContentPresenter Grid.Row="1" ContentTemplate="{StaticResource tmpl_InjectorFirstSettings}"></ContentPresenter>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid Margin="3,0,3,3" RenderTransformOrigin="0.5,0.5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <GroupBox Header="Связь с устройством" Foreground="Blue" BorderBrush="Black" Padding="3">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition MinWidth="200"></ColumnDefinition>
+                    <ColumnDefinition MinWidth="200"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" MinWidth="130"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <ComboBox SelectedItem="{Binding Path=ConnectionPort}" ItemsSource="{Binding Source={StaticResource ComPorts}}" IsEnabled="{Binding Path=IsConnected, Converter={StaticResource svc_BoolInverter}}" DropDownOpened="ComPorts_OnDropDownOpened"></ComboBox>
+                <TextBox Grid.Column="1" Text="{Binding Path=ConnectionBaudrate}" IsEnabled="{Binding Path=IsConnected, Converter={StaticResource svc_BoolInverter}}" Margin="3,0,3,0"></TextBox>
+                <Button Grid.Column="2" Content="{Binding Path=IsConnected, Converter={StaticResource svc_IsConnectedToText}}" FontWeight="Bold" Click="ButtonConnection_OnClick"></Button>
+            </Grid>
+        </GroupBox>
+        <StackPanel Grid.Row="1" Visibility="{Binding Path=IsConnected, Converter={StaticResource svc_IsConnectedToVisible}}">
+            <Button Content="Test" Visibility="Collapsed" Click="ButtonTest_OnClick"></Button>
+            <StackPanel DataContext="{Binding Path=Settings}" Visibility="{Binding Path=IsValid, Converter={StaticResource svc_IsValidToVisible}}">
+                <GroupBox Header="Несущая частота" FontSize="14" FontWeight="Bold" Foreground="Blue" BorderBrush="Black" Padding="3">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition Width="Auto" MinWidth="130"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Border BorderThickness="2" BorderBrush="Violet" CornerRadius="3" Padding="2" Margin="0,0,3,0">
+                            <Slider Minimum="{Binding Source={x:Static injector:CSettings.FREQUENCY_MIN}}" Maximum="{Binding Source={x:Static injector:CSettings.FREQUENCY_MAX}}" TickFrequency="0.25" Value="{Binding Path=Frequency, Converter={StaticResource svc_FrequencyLogarithmic}}" IsMoveToPointEnabled="True">
+                               <Slider.LayoutTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="2" ScaleY="2"/>
+                                    </TransformGroup>
+                                </Slider.LayoutTransform>
+                            </Slider>
+                        </Border>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding Path=Frequency, StringFormat='\{0:N2\}', ValidatesOnExceptions=True}" TextAlignment="Right" VerticalAlignment="Center"></TextBox>
+                            <TextBlock Grid.Column="1" Text="Гц" Foreground="Black" VerticalAlignment="Center"></TextBlock>
+                        </Grid>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Grid.Row="1" Header="Инжектор 1" Foreground="Blue" FontSize="14" FontWeight="Bold" BorderBrush="Black" BorderThickness="2" Padding="3">
+                    <StackPanel>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="Задержка:" Foreground="Black" VerticalAlignment="Center" Padding="0,0,3,0"></TextBlock>
+                            <TextBox Text="{Binding Path=DelayMs, StringFormat='\{0:N1\}'}" TextAlignment="Right" MinWidth="100" ></TextBox>
+                            <TextBlock Text="мс" Foreground="Black" VerticalAlignment="Center"></TextBlock>
+                        </StackPanel>
+                        <ContentPresenter Content="{Binding Path=InjectorFirstSettings1}" ContentTemplate="{StaticResource tmpl_InjectorFirstSettings}"></ContentPresenter>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Grid.Row="2" Header="Инжектор 2" Foreground="Blue" FontSize="14" FontWeight="Bold" BorderBrush="Black" BorderThickness="2" Padding="3">
+                    <ContentPresenter Content="{Binding Path=InjectorSettings2}" ContentTemplate="{StaticResource tmpl_InjectorSettings}"></ContentPresenter>
+                </GroupBox>
+                <GroupBox Grid.Row="3" Header="Инжектор 3" Foreground="Blue" FontSize="14" FontWeight="Bold" BorderBrush="Black" BorderThickness="2" Padding="3">
+                    <ContentPresenter Content="{Binding Path=InjectorSettings3}" ContentTemplate="{StaticResource tmpl_InjectorSettings}"></ContentPresenter>
+                </GroupBox>
+                <Button Content="Сохранить настройки в энергонезависимой памяти" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0" Click="ButtonSaveSettings_OnClick"></Button>
+            </StackPanel>
+            <TextBlock Text="Ожидание готовности контроллера" HorizontalAlignment="Center" FontWeight="Bold" FontSize="22" Foreground="Brown" Visibility="{Binding Path=Settings.IsValid, Converter={StaticResource svc_IsValidToVisibleInverted}}"></TextBlock>
+        </StackPanel>
+    </Grid>
+</Window>

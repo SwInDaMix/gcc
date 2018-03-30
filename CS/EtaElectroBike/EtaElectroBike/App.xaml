@@ -1,0 +1,9 @@
+﻿<Application x:Class="EtaElectroBike.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:electrobike="clr-namespace:EtaElectroBike"
+             StartupUri="WindowMain.xaml">
+    <Application.Resources>
+        <electrobike:svc_BoolInverter x:Key="svc_BoolInverter"/>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,36 @@
+﻿<Application x:Class="EscPosEmulator.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:EscPosEmulator"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <local:svc_EnumValueToEnumDescription x:Key="svc_EnumValueToEnumDescription"/>
+        <ObjectDataProvider x:Key="odp_Widths" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:MainWindow+Printer+EWidths"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <Style x:Key="stl_ListBox">
+            <Setter Property="Control.Padding" Value="0"></Setter>
+            <Style.Triggers>
+                <Trigger Property="ListBoxItem.IsSelected" Value="True">
+                    <Setter Property="ListBoxItem.Background" Value="LightSkyBlue"/>
+                    <Setter Property="ListBoxItem.Foreground" Value="Black"/>
+                </Trigger>
+                <Trigger Property="ListBoxItem.IsMouseOver" Value="True">
+                    <Setter Property="ListBoxItem.Background" Value="#E0F0FA"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="ListBoxItem.IsSelected" Value="True"/>
+                        <Condition Property="ListBoxItem.IsMouseOver" Value="True"/>
+                    </MultiTrigger.Conditions>
+                    <MultiTrigger.Setters>
+                        <Setter Property="ListBoxItem.Background" Value="#58BCFA"/>
+                    </MultiTrigger.Setters>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>

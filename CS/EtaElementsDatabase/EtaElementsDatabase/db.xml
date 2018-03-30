@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<EtaElementsDatabase Version="1">
+  <ElementItem Name="Diodes">
+    <Entity Name="1N4742A">
+      <Parameter Name="Purpose">Zener</Parameter>
+      <Parameter Name="Max Reverse Voltage">12 V</Parameter>
+      <Parameter Name="Power">1 W</Parameter>
+      <Package Name="DO-41" Count="10" />
+      <Placement Box="2" Row="1" Column="1" />
+      <Datasheet Filename="Diodes/1N4742A.pdf" Page="1" />
+      <Comment>Test Comment for zener 1N4742A
+Next Line</Comment>
+    </Entity>
+  </ElementItem>
+  <ElementContainer Name="Transistors">
+    <ElementItem Name="BJT" />
+    <ElementItem Name="MOSFET">
+      <Entity Name="IRF800;IRF800A">
+        <Parameter Name="Junction">P</Parameter>
+        <Parameter Name="Power">150 W</Parameter>
+        <Parameter Name="Off Voltage">200 V</Parameter>
+        <Parameter Name="On Resistance">2m8 &#x3A9;</Parameter>
+        <Package Name="TO220" Count="10" />
+        <Placement Box="1" Row="1" Column="2" />
+        <Datasheet Filename="Transistors/IRF800.pdf" Page="1" />
+        <Comment>Test Comment for IRF800</Comment>
+      </Entity>
+      <Entity Name="IRF630;IRF630A">
+        <Parameter Name="Junction">P</Parameter>
+        <Parameter Name="Power">100 W</Parameter>
+        <Parameter Name="Off Voltage">300 V</Parameter>
+        <Parameter Name="On Resistance">12m8 &#x3A9;</Parameter>
+        <Package Name="DO-41_longname" Count="120" />
+        <Package Name="DO-41" Count="1220" />
+        <Package Name="TO220" Count="10" />
+        <Placement Box="1" Row="1" Column="1" />
+        <Datasheet Filename="Transistors/IRF630.pdf" Page="1" />
+        <Comment>Test Comment for IRF630</Comment>
+      </Entity>
+    </ElementItem>
+    <ElementItem Name="IGBT" />
+    <ElementItem Name="JFET" />
+    <ElementItem Name="Unijunction" />
+  </ElementContainer>
+  <ElementContainer Name="ICs">
+    <ElementItem Name="Analog" />
+    <ElementItem Name="Memory" />
+    <ElementItem Name="Microprocessor" />
+    <ElementItem Name="Logic" />
+  </ElementContainer>
+</EtaElementsDatabase>

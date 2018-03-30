@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Packages Version="1">
+  <Package Name="TO220" Image="TO220_1.PNG;TO220_2.PNG" />
+  <Package Name="TO220_longname" Image="TO220_1.PNG;TO220_2.PNG" />
+  <Package Name="DO-41" Image="DO-41.JPG" />
+  <Package Name="DO-41_longname" Image="DO-41.JPG" />
+</Packages>

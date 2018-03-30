@@ -1,0 +1,41 @@
+﻿<Application x:Class="EtaSecurityGovernorManager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:governorman="clr-namespace:EtaSecurityGovernorManager"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             StartupUri="WindowMain.xaml">
+    <Application.Resources>
+        <governorman:svc_BoolInverter x:Key="svc_BoolInverter"/>
+        <governorman:svc_BoolToVisible x:Key="svc_BoolToVisible"/>
+        <governorman:svc_BoolToVisibleInverted x:Key="svc_BoolToVisibleInverted"/>
+        <governorman:svc_EnumValueToEnumDescription x:Key="svc_EnumValueToEnumDescription"/>
+        <governorman:svc_IsActionToBrush x:Key="svc_IsActionToBrush"/>
+        <governorman:svc_IsActiveToButtonActionText x:Key="svc_IsActiveToButtonActionText"/>
+        <ObjectDataProvider x:Key="odp_Action" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="governorman:EtaSecurityGovernorManagerControl+EAction"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <Style x:Key="stl_ListBox">
+            <Setter Property="Control.Padding" Value="0"></Setter>
+            <Style.Triggers>
+                <Trigger Property="ListBoxItem.IsSelected" Value="True">
+                    <Setter Property="ListBoxItem.Background" Value="LightSkyBlue"/>
+                    <Setter Property="ListBoxItem.Foreground" Value="Black"/>
+                </Trigger>
+                <Trigger Property="ListBoxItem.IsMouseOver" Value="True">
+                    <Setter Property="ListBoxItem.Background" Value="#E0F0FA"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="ListBoxItem.IsSelected" Value="True"/>
+                        <Condition Property="ListBoxItem.IsMouseOver" Value="True"/>
+                    </MultiTrigger.Conditions>
+                    <MultiTrigger.Setters>
+                        <Setter Property="ListBoxItem.Background" Value="#58BCFA"/>
+                    </MultiTrigger.Setters>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>

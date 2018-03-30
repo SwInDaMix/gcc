@@ -1,0 +1,217 @@
+﻿<Window x:Class="EtaElementsDatabase.WindowMain"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:EtaElementsDatabase"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:system_coll="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+        Title="Eta Elements Database" Height="550" Width="978.166" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Loaded="MainWindow_Loaded" Closed="WindowMain_Closed">
+    <Window.Resources>
+        <local:mvc_Entities x:Key="mvc_Entities"/>
+        <local:svc_CanAddNewEntity x:Key="svc_CanAddNewEntity"/>
+        <local:svc_CanRemoveSelectedEntities x:Key="svc_CanRemoveSelectedEntities"/>
+        <HierarchicalDataTemplate DataType="{x:Type local:CElementContainer}" ItemsSource="{Binding Path=ChildElements}">
+            <TextBlock Text="{Binding Path=Name}"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:CElementItem}">
+            <TextBlock Text="{Binding Path=Name}" />
+        </HierarchicalDataTemplate>
+        <DataTemplate x:Key="tmpl_ElementEntity_HeaderDistinct" DataType="{x:Type local:CElementItem+CElementEntity}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBlock Padding="0,0,10,0" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" Text="{Binding Path=NameTotal}"></TextBlock>
+                <TextBlock Grid.Column="1" Padding="0,0,4,0" VerticalAlignment="Center" FontWeight="Bold" Text="{Binding Path=ElementItem.FriendlyPath}"></TextBlock>
+                <Button Grid.Column="2" Click="ElementEntityRemove_Distinct_OnClick">
+                    <Button.Content>
+                        <Image Source="{StaticResource png_Delete}" />
+                    </Button.Content>
+                </Button>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="tmpl_ElementEntity_HeaderByName" DataType="{x:Type local:CElementItem+CElementEntity+CName}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBlock Padding="0,0,10,0" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" Text="{Binding Path=Name}"></TextBlock>
+                <TextBlock Grid.Column="1" Padding="0,0,4,0" VerticalAlignment="Center" FontWeight="Bold" Text="{Binding Path=ElementEntity.ElementItem.FriendlyPath}"></TextBlock>
+                <Button Grid.Column="2" Click="ElementEntityRemove_ByName_OnClick">
+                    <Button.Content>
+                        <Image Source="{StaticResource png_Delete}" />
+                    </Button.Content>
+                </Button>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="tmpl_ElementEntity_Body" DataType="{x:Type local:CElementItem+CElementEntity}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Path=ParameterEntities}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"></StackPanel>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,3,0" Padding="2,0,2,0" BorderThickness="1" CornerRadius="2" BorderBrush="LightGray" Background="#E8FFE8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontWeight="Bold" Padding="0,0,5,0" Text="{Binding Path=Parameter.ParameterName, StringFormat='\{0\}:'}"></TextBlock>
+                                        <TextBlock Text="{Binding Path=StringValue}"></TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock FontSize="10" Foreground="DarkBlue" FontStyle="Italic" Text="{Binding Path=Comment}"></TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Margin="0,0,3,0" Padding="0,0,0,0" BorderThickness="1" CornerRadius="2" BorderBrush="LightGray" Background="#E8FFE8">
+                            <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Path=Datasheets}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="ssg_DatasheetFilename" Width="Auto"></ColumnDefinition>
+                                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Padding="0,0,5,0" VerticalAlignment="Center" Text="{Binding Path=Filename}"></TextBlock>
+                                            <Button Grid.Column="1">
+                                                <Button.Content>
+                                                    <Image Source="{StaticResource png_View}" />
+                                                </Button.Content>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Border Padding="2,0,2,0" BorderThickness="1" CornerRadius="2" BorderBrush="LightGray" Background="#FFE8E8">
+                        <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Path=PackageEntities}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ToolTip>
+                                            <ToolTip>
+                                                <ContentPresenter Content="{Binding Path=Package.PackageImages}" ContentTemplate="{StaticResource tmpl_ToolTipPackageImages}" />
+                                            </ToolTip>
+                                        </Grid.ToolTip>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition SharedSizeGroup="ssg_PackageEntyties_Name" Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Padding="0,0,5,0" Text="{Binding Path=Package.PackageName, StringFormat='\{0\}:'}"></TextBlock>
+                                        <TextBlock Grid.Column="1" HorizontalAlignment="Right" FontWeight="Bold" Text="{Binding Path=Count}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                    <Border>
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <TextBlock FontWeight="Bold" Padding="0,0,5,0" Text="Placement:"></TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} - {1}:{2}">
+                                        <Binding Path="PlacementBox"/>
+                                        <Binding Path="PlacementRow"/>
+                                        <Binding Path="PlacementColumn"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:CElementItem+CElementEntity}">
+            <Border Background="White">
+                <Border Margin="2" BorderThickness="1" BorderBrush="SteelBlue" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Path=Background}" CornerRadius="4">
+                    <StackPanel Margin="3">
+                        <ContentPresenter ContentTemplate="{StaticResource tmpl_ElementEntity_HeaderDistinct}"></ContentPresenter>
+                        <ContentPresenter ContentTemplate="{StaticResource tmpl_ElementEntity_Body}"></ContentPresenter>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:CElementItem+CElementEntity+CName}">
+            <Border Background="White">
+                <Border Margin="2" BorderThickness="1" BorderBrush="SteelBlue" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Path=Background}" CornerRadius="4">
+                    <StackPanel Margin="3">
+                        <ContentPresenter ContentTemplate="{StaticResource tmpl_ElementEntity_HeaderByName}"></ContentPresenter>
+                        <ContentPresenter Content="{Binding Path=ElementEntity}" ContentTemplate="{StaticResource tmpl_ElementEntity_Body}"></ContentPresenter>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="File">
+                <MenuItem Header="Save" Click="MI_File_Save_OnClick"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Exit" Click="MI_File_Exit_OnClick"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Elements">
+                <MenuItem x:Name="MI_DistinctEntities" Header="Distinct Elements" IsCheckable="True"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Packages" Click="MI_Packages_OnClick"></MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="100"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition MinWidth="100" Width="3*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TreeView Name="TV_Containers" Grid.Row="0" Grid.Column="0" ItemsSource="{Binding}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+            </TreeView>
+            <GridSplitter Grid.Column="1" Width="5" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False"></GridSplitter>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <ToolBar>
+                    <Button IsEnabled="{Binding ElementName=TV_Containers, Path=SelectedItem, Converter={StaticResource svc_CanAddNewEntity}}" Click="ElementEntityAdd">
+                        <Button.Content>
+                            <local:AutoGreyableImage Source="{StaticResource png_Add}"/>
+                        </Button.Content>
+                    </Button>
+                    <Button IsEnabled="{Binding ElementName=LB_Items, Path=SelectedItems.Count, Converter={StaticResource svc_CanRemoveSelectedEntities}}" Click="ElementEntityRemoveSelected_OnClick">
+                        <Button.Content>
+                            <local:AutoGreyableImage Source="{StaticResource png_Delete}" />
+                        </Button.Content>
+                    </Button>
+                    <CheckBox IsChecked="{Binding ElementName=MI_DistinctEntities, Path=IsChecked}" Content="Distinct Entities"></CheckBox>
+                </ToolBar>
+                <ListBox Grid.Row="1" Name="LB_Items" SelectionMode="Extended" HorizontalContentAlignment="Stretch" SnapsToDevicePixels="True" MouseDoubleClick="LB_Items_OnMouseDoubleClick" ItemContainerStyle="{StaticResource stl_ListBox}">
+                    <ListBox.ItemsSource>
+                        <MultiBinding Converter="{StaticResource mvc_Entities}">
+                            <Binding ElementName="TV_Containers" Path="SelectedItem"/>
+                            <Binding ElementName="MI_DistinctEntities" Path="IsChecked"/>
+                        </MultiBinding>
+                    </ListBox.ItemsSource>
+                </ListBox>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

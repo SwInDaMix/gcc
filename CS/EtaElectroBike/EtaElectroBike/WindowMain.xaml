@@ -1,0 +1,67 @@
+﻿<Window x:Class="EtaElectroBike.WindowMain"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:electrobike="clr-namespace:EtaElectroBike"
+        xmlns:ports="clr-namespace:System.IO.Ports;assembly=System"
+        Title="Eta ElectroBike" SnapsToDevicePixels="True" ResizeMode="CanMinimize"
+        DataContext="{Binding RelativeSource={RelativeSource Self}, Path=ElectroBikeControl}" SizeToContent="WidthAndHeight" Closed="Window_Closed">
+    <Window.Resources>
+        <ObjectDataProvider ObjectType="{x:Type ports:SerialPort}" MethodName="GetPortNames" x:Key="ComPorts"/>
+        <electrobike:svc_IsConnectedToText x:Key="svc_IsConnectedToText"/>
+        <electrobike:svc_IsConnectedToVisible x:Key="svc_IsConnectedToVisible"/>
+        <electrobike:svc_IsValidToVisible x:Key="svc_IsValidToVisible"/>
+        <electrobike:svc_IsValidToVisibleInverted x:Key="svc_IsValidToVisibleInverted"/>
+    </Window.Resources>
+    <Grid Margin="3,0,3,3" RenderTransformOrigin="0.5,0.5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <GroupBox Header="Bike Connection" Foreground="Blue" BorderBrush="Black" Padding="3">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition MinWidth="200"></ColumnDefinition>
+                    <ColumnDefinition MinWidth="200"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" MinWidth="130"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <ComboBox SelectedItem="{Binding Path=ConnectionPort}" ItemsSource="{Binding Source={StaticResource ComPorts}}" IsEnabled="{Binding Path=IsConnected, Converter={StaticResource svc_BoolInverter}}" DropDownOpened="ComPorts_OnDropDownOpened"></ComboBox>
+                <TextBox Grid.Column="1" Text="{Binding Path=ConnectionPortBaudrate}" IsEnabled="{Binding Path=IsConnected, Converter={StaticResource svc_BoolInverter}}" Margin="3,0,3,0"></TextBox>
+                <Button Grid.Column="2" Content="{Binding Path=IsConnected, Converter={StaticResource svc_IsConnectedToText}}" FontWeight="Bold" Click="ButtonConnection_OnClick"></Button>
+            </Grid>
+        </GroupBox>
+        <StackPanel Grid.Row="1" Visibility="{Binding Path=IsConnected, Converter={StaticResource svc_IsConnectedToVisible}}">
+            <Button Content="Test" Visibility="Collapsed" Click="ButtonTest_OnClick"></Button>
+            <StackPanel Visibility="{Binding Path=IsValid, Converter={StaticResource svc_IsValidToVisible}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Hall Position" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                    <TextBox Grid.Column="1" Text="{Binding Path=HallPosition, Mode=OneWay}" Margin="3,0,0,0"></TextBox>
+                    <TextBlock Grid.Row="1" Text="Hall Prescaler" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=HallPrescaler, Mode=OneWay}" Margin="3,0,0,0"></TextBox>
+                    <TextBlock Grid.Row="2" Text="Hall Period" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=HallPeriod, Mode=OneWay}" Margin="3,0,0,0"></TextBox>
+                    <TextBlock Grid.Row="3" Text="PWM Torque" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                    <Slider Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="2666" Value="{Binding Path=NewParamPWM}"></Slider>
+                    <TextBlock Grid.Row="4" Text="Hall Period" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                    <Slider Grid.Row="4" Grid.Column="1" Minimum="4166" Maximum="65535" Value="{Binding Path=NewParamHall}"></Slider>
+                </Grid>
+                <Button Content="Test Command - TIM_GenerateEvent" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0" Click="Button_TIM_GenerateEvent_Click"></Button>
+                <Button Content="Test Command - BLDC_ProcessStep" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0" Click="Button_BLDC_ProcessStep_Click"></Button>
+                <Button Content="Save settings" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0" Click="ButtonSaveSettings_OnClick"></Button>
+            </StackPanel>
+            <TextBlock Text="Waiting for bike response....." HorizontalAlignment="Center" FontWeight="Bold" FontSize="22" Foreground="Brown" Visibility="{Binding Path=Settings.IsValid, Converter={StaticResource svc_IsValidToVisibleInverted}}"></TextBlock>
+        </StackPanel>
+    </Grid>
+</Window>

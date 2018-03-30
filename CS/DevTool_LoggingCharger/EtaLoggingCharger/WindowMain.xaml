@@ -1,0 +1,150 @@
+﻿<Window x:Class="EtaLoggingCharger.WindowMain"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:electrobike="clr-namespace:EtaLoggingCharger"
+        Title="Eta Logging Charger" SnapsToDevicePixels="True" ResizeMode="CanResize"
+        DataContext="{Binding RelativeSource={RelativeSource Self}, Path=ElectroBikeControl}" Closed="Window_Closed">
+    <Window.Resources>
+        <electrobike:svc_LogEntriesOptionedToLogEntriesFiltered x:Key="svc_LogEntriesOptionedToLogEntriesFiltered"/>
+        <electrobike:svc_ChargeDischargeToColor x:Key="svc_ChargeDischargeToColor"/>
+        <electrobike:svc_CellTypeToText x:Key="svc_CellTypeToText"/>
+        <electrobike:svc_IsValidToVisible x:Key="svc_IsValidToVisible"/>
+        <electrobike:svc_IsValidToVisibleInverted x:Key="svc_IsValidToVisibleInverted"/>
+        <DataTemplate DataType="{x:Type electrobike:EtaLoggingChargerControl+CLogEntry}">
+            <Border Background="White">
+                <Border Margin="2" BorderThickness="1" BorderBrush="SteelBlue" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Path=Background}" CornerRadius="4">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition SharedSizeGroup="ssg_EntryAmpsHour" Width="Auto"></ColumnDefinition>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <DockPanel>
+                                <Border DockPanel.Dock="Top" BorderBrush="Peru" BorderThickness="1" CornerRadius="3" Padding="6,1,6,1" Margin="1">
+                                    <TextBlock Text="{Binding Path=CellType, Converter={StaticResource svc_CellTypeToText}}" FontWeight="Bold"></TextBlock>
+                                </Border>
+                                <Border VerticalAlignment="Stretch" BorderBrush="BlueViolet" BorderThickness="2" CornerRadius="3" Background="{Binding Path=IsDischarging, Converter={StaticResource svc_ChargeDischargeToColor}}" Margin="1">
+                                    <TextBlock Text="{Binding Path=AmpHour, StringFormat='\{0:F3\} Ah'}" FontSize="30" FontWeight="Bold" Padding="12,0,12,0"></TextBlock>
+                                </Border>
+                            </DockPanel>
+                            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="1,0,0,0">
+                                <Grid Grid.IsSharedSizeScope="true" >
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" BorderBrush="Orange" BorderThickness="1" CornerRadius="3" Padding="6,1,6,1" Margin="0,1,1,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="ssg_EntryDetailDescription" Width="Auto"></ColumnDefinition>
+                                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Processing Time:" FontSize="9"></TextBlock>
+                                            <TextBlock Grid.Column="1" Margin="10,0,0,0" FontSize="9" FontWeight="Bold" Text="{Binding Path=ProcessingTime, StringFormat='\{0:hh\}h \{0:mm\}m \{0:ss\}s'}"></TextBlock>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="1" BorderBrush="Orange" BorderThickness="1" CornerRadius="3" Padding="6,1,6,1" Margin="0,0,1,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="ssg_EntryDetailDescription" Width="Auto"></ColumnDefinition>
+                                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Avarage Current:" FontSize="9"></TextBlock>
+                                            <TextBlock Grid.Column="1" Margin="10,0,0,0" FontSize="9" FontWeight="Bold" Text="{Binding Path=AvarageCurrent, StringFormat='\{0:F4\} A'}"></TextBlock>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="2" BorderBrush="Orange" BorderThickness="1" CornerRadius="3" Padding="6,1,6,1" Margin="0,0,1,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="ssg_EntryDetailDescription" Width="Auto"></ColumnDefinition>
+                                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Midpoint Voltage:" FontSize="9"></TextBlock>
+                                            <TextBlock Grid.Column="1" Margin="10,0,0,0" FontSize="9" FontWeight="Bold" Text="{Binding Path=MidpointVoltage, StringFormat='\{0:F4\} V'}"></TextBlock>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="3" BorderBrush="Orange" BorderThickness="1" CornerRadius="3" Padding="6,1,6,1" Margin="0,0,1,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="ssg_EntryDetailDescription" Width="Auto"></ColumnDefinition>
+                                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Wattage:" FontSize="9"></TextBlock>
+                                            <TextBlock Grid.Column="1" Margin="10,0,0,0" FontSize="9" FontWeight="Bold" Text="{Binding Path=Wattage, StringFormat='\{0:F3\} W'}"></TextBlock>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        <Border BorderBrush="DarkTurquoise" BorderThickness="1" CornerRadius="3" Padding="1,1,1,1" Margin="1,0,1,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Name:" FontWeight="Bold" VerticalAlignment="Center"></TextBlock>
+                                <TextBox Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="Bold"></TextBox>
+                                <Button Grid.Column="2" Content="Apply" Click="ButtonApplyName_OnClick"></Button>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid Margin="3" RenderTransformOrigin="0.5,0.5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <ToolBar >
+            <ComboBox SelectedItem="{Binding Path=ConnectionDevice}" ItemsSource="{x:Static electrobike:EtaLoggingChargerControl.GetConnectionDevices}" DropDownOpened="ComPorts_OnDropDownOpened"></ComboBox>
+            <CheckBox Content="Ignore Last Sector Value" IsChecked="{Binding Path=IsIgnoreLastSectorValue, IsAsync=True}"></CheckBox>
+            <RadioButton Name="RB_All" VerticalAlignment="Stretch" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsChecked="True">
+                <RadioButton.Content>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Border BorderThickness="1" CornerRadius="2" BorderBrush="Red" Background="DarkRed" ></Border>
+                        <Border Grid.Row="1" BorderThickness="1" CornerRadius="2" BorderBrush="Lime" Background="Green" ></Border>
+                    </Grid>
+                </RadioButton.Content>
+            </RadioButton>
+            <RadioButton Name="RB_Discharge" VerticalAlignment="Stretch" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <RadioButton.Content>
+                    <Border BorderThickness="1" CornerRadius="2" BorderBrush="Red" Background="DarkRed" ></Border>
+                </RadioButton.Content>
+            </RadioButton>
+            <RadioButton Name="RB_Charge" VerticalAlignment="Stretch" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <RadioButton.Content>
+                    <Border BorderThickness="1" CornerRadius="2" BorderBrush="Lime" Background="Green" ></Border>
+                </RadioButton.Content>
+            </RadioButton>
+            <Button Content="Reload List" FontWeight="Bold" Click="ButtonReloadList_OnClick"></Button>
+            <Button Content="Clear List" FontWeight="Bold" Click="ButtonClearLogList_OnClick"></Button>
+            <Button Content="Download" FontWeight="Bold" Click="ButtonDownload_OnClick"></Button>
+        </ToolBar>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition ></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <ListBox Name="LB_LogEntries" SelectionMode="Extended" HorizontalContentAlignment="Stretch" SnapsToDevicePixels="True" SelectionChanged="LB_LogEntries_OnSelectionChanged" ItemContainerStyle="{StaticResource stl_ListBox}" Margin="0,0,3,0" Visibility="{Binding Path=IsValid, Converter={StaticResource svc_IsValidToVisible}}">
+                <ListBox.ItemsSource>
+                    <MultiBinding Mode="OneWay" Converter="{StaticResource svc_LogEntriesOptionedToLogEntriesFiltered}">
+                        <Binding Path="LogEntries"></Binding>
+                        <Binding ElementName="RB_All" Path="IsChecked"></Binding>
+                        <Binding ElementName="RB_Discharge" Path="IsChecked"></Binding>
+                        <Binding ElementName="RB_Charge" Path="IsChecked"></Binding>
+                    </MultiBinding>
+                </ListBox.ItemsSource>
+            </ListBox>
+            <electrobike:EtaCtlGraph SnapsToDevicePixels="True" RenderOptions.ClearTypeHint="Auto" RenderOptions.CachingHint="Unspecified" Grid.Column="1" x:Name="GRF_LogEntries"></electrobike:EtaCtlGraph>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,58 @@
+*.suo
+*.exe
+*.user
+*.DotSettings
+
+.vs
+
+RemoteSystemsTempFiles
+obj
+bin
+
+3D Test
+CalculateSafeCodeLockResistance
+CDOM
+CDOM Environment
+Char table
+ClassManualEnvironment
+cw1
+DiskErasor
+DN Art Viewer
+Entertainment
+EtaAcceptor
+EtaDiscoScripts
+ExMath
+HttpStub
+IPTV Playlist Converter
+LazyFileNormalize
+Lead Acid Calc
+LegacySSA
+LinqToy
+LPT
+LPTTest
+MinicapTasker
+OBD
+OBDCDOM
+orelink
+orelistdn
+oreview
+PicView
+Quake3 Config Comparator
+Quake3Launcher
+RESEDIT
+RtfToy
+SSA
+SSA Statistic
+SSAMETA
+SSAOLD
+Study
+SW3DMovie
+SWOS
+SwSienceFacility
+TECHSTK
+TestDrawing
+TorrentChanger
+UNIQ_NetworkUnitTestHttp
+VASM
+VASM UI TEST
+VasmSynt
