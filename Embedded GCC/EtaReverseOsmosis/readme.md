@@ -1,5 +1,5 @@
 # Reverse osmosis controller
-I'h made a decision to make this controller after a four-way valve in my system was out of order and went to rubbish bin :relieved:. So i bought a couple of 12v valves on ali and .... and here you can see the result.
+I've made a decision to make this controller after a four-way valve in my system was out of order and went to rubbish bin :relieved:. So i bought a couple of 12v valves on ali and .... and here you can see the result.
 
 
 ## Schematic
