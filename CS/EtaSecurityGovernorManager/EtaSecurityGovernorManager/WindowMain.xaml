@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:governorman="clr-namespace:EtaSecurityGovernorManager"
         xmlns:ports="clr-namespace:System.IO.Ports;assembly=System"
-        Title="Eta Sequrity Governor Manager" SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Width"
+        Title="Eta Security Governor Manager" SnapsToDevicePixels="True" ResizeMode="CanResize" SizeToContent="Width"
         DataContext="{Binding RelativeSource={RelativeSource Self}, Path=GovernorManagerControl}" Closed="Window_Closed">
     <Window.Resources>
         <ObjectDataProvider ObjectType="{x:Type ports:SerialPort}" MethodName="GetPortNames" x:Key="ComPorts"/>
@@ -87,7 +87,7 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
-        <GroupBox Header="Bike Connection" Foreground="Blue" BorderBrush="Black" Padding="3">
+        <GroupBox Header="Connection to system" Foreground="Blue" BorderBrush="Black" Padding="3">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition MinWidth="200"></ColumnDefinition>
