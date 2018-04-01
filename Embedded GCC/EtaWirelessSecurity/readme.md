@@ -28,5 +28,5 @@ Communication of governor and remote key is encrypted by private 256-bit keys, t
 
 After a challenge won, governor may initiate a key replace procedure thus making the private key non-static. This adds additional reliability to protocol security.
 
-## It's not finished yet !!!
+## It's not finished yet !!! :construction:
 It's a lot of work waiting to be done, but bold start has been made.
