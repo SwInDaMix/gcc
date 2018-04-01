@@ -1,5 +1,5 @@
 # Tool to measure AC load characteristic
-It is a simple an useful in practice tool to investigate how a particular AC load behaves. The tool measures voltage, frequency, apparent, active and effective powers, **cos** φ. It also measure the overall power taken or given (reverse) to or from AC load.
+It is a simple an useful in practice tool to investigate how a particular AC load behaves. The tool precisely measures voltage, frequency, apparent, active and effective powers, **cos** φ. It also measure the overall power taken or given (reverse) to or from AC load.
 
 ## Schematic
 ![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/DevTool_ACPowerMetter/schematic.png)
