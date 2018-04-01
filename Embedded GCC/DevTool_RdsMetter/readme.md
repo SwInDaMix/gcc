@@ -1,5 +1,5 @@
 # Tool to measure resistance of an open FET channel (N-channel only)
-It is a simple an useful in practice tool to determine Rds(on) of N-channel FET. Principle is simple: device loads an open FET channel with as much current as it can to gain enough voltage drop on it.
+It is a simple an useful in practice tool to determine Rds(on) of N-channel FET. Principle is simple: device loads an open FET channel with as much current as it can to gain enough drop voltage on it.
 
 ## Schematic
 ![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/DevTool_RdsMetter/schematic.png)
