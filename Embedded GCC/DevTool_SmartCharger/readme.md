@@ -12,7 +12,7 @@ Can charge and discharge **LiFePo4**, **LiIon**, **LiPo**, **PbAcid 3** cells, *
 ![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/DevTool_SmartCharger/pcb.png)
 
 ## Software to investigate statistic
-With this software you can load statistic data from SD-card to investigate them and compare with other batteries statistic. You can watch voltage of charge/discharge and its midpoint voltage (voltage at which battery stays most of the time during the process). Also it shows average current and whole wattage of taken or given energy during the process.
+With this software [GitHub](https://github.com/SwInDaMix/sw-hub/tree/master/CS/DevTool_LoggingCharger) you can load statistic data from SD-card to investigate them and compare with other batteries statistic. You can watch voltage of charge/discharge and its midpoint voltage (voltage at which battery stays most of the time during the process). Also it shows average current and whole wattage of taken or given energy during the process.
 
 ### LiFePo4 statistics
 ![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/DevTool_SmartCharger/software_charts_lifepo.png)
