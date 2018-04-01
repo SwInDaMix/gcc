@@ -4,18 +4,16 @@ This is one of my pretty ambitious large project using C++ on Cortex-M3 microcon
 Currently more part of the planned UI features is ready:
 
 ## UI teaser on actual device
-![schematic capture](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser1.jpg)
+![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser1.jpg)
 
-![schematic capture](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser2.jpg)
+![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser2.jpg)
 
 ## UI teaser on windows emulator
+![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser_on_emulator1.png)
 
-![schematic capture](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser_on_emulator1.png)
-
-![schematic capture](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser_on_emulator2.png)
+![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaOscilloscope/UI_teaser_on_emulator2.png)
 
 ## How this is created programmatically
-
 All UI hierarchy is created programmatically:
 
 ```c++
