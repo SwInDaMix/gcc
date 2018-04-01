@@ -1,5 +1,5 @@
 # Custom firmware for toy oscilloscope DS203
-This is one of my pretty ambitious large project using C++ on Cortex-M3 microcontroller. It's purpose to build a graphical, windows-like, with user friendly interface and more convenient control.
+This is one of my pretty ambitious large project using C++ on Cortex-M3 microcontroller. It's purpose to build a graphical, windows-like user friendly interface and more convenient control.
 
 Currently more part of the planned UI features is ready:
 
