@@ -8,7 +8,7 @@ BIN_DIR = bin
 EXTRN_OBJ_DIR = obj_extrn
 PRE_OBJ_DIR = obj_pre
 OBJ_DIR = obj
-TARGET = $(BIN_DIR)/LifepoCharger
+TARGET = $(BIN_DIR)/SmartCharger
 DEBUG =
 OPTIM = -Os
 
