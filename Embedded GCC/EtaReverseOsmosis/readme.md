@@ -13,7 +13,7 @@ I've made a decision to make this controller after a four-way valve in my system
 ## Installed and ready to use device
 ![](https://raw.github.com/SwInDaMix/swindamix.github.io/master/docs/EtaReverseOsmosis/installed_device.jpg)
 
-It work pretty simple: when pressure gauge of accumulator tank triggers (it is setup to half of full pressure), it starts filtering. Filtering is a three step procedure: clean membrane, filter watter until pressure gauge is off again (reached half of full pressure) and then 45 minutes after that, clean membrane again. Also there is a low pressure gauge at water inlet, which triggers the device off (ignoring tank pressure gauge).
+It works pretty simple: when pressure gauge of accumulator tank triggers on (it is setup to half of full pressure), it starts filtering. Filtering is a three step procedure: clean membrane, filter watter until pressure gauge is off again (reached half of full pressure) and then 45 minutes after that, clean membrane again. Also there is a low pressure gauge at water inlet, which triggers the device off (ignoring tank pressure gauge).
 
 The cleaning procedure before and after watter filtering, may slightly prolong the life of the membrane thus reducing the cost of replacements.
 
