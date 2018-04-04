@@ -27,8 +27,8 @@ CStack *_stack2 = new CStack(*_stack, nullptr, EOrientation::Horizontal, EAlignm
 new CButton(*_stack2);
 new CButton(*_stack2, &_img16_cpma, EColor::Black, nullptr);
 new CPrimitiveSeparator(*_stack2, EOrientation::Vertical, false);
-CButton *_btn = new CButton(*_stack2, nullptr, nullptr, "If you wanna\nfly so hight -\nKiss my ass,\nand say good-byte"); _btn->ColorForeground_set(EColor::White); _btn->FontIsShadow_set(true);
-new CButton(*_stack2, &_img16_cpma, EColor::Black, "If you wanna\nfly so hight -\nKiss my ass,\nand say good-byte");
+CButton *_btn = new CButton(*_stack2, nullptr, nullptr, "The quick brown\nfox jumps over\nthe lazy snoopy-dog"); _btn->ColorForeground_set(EColor::White); _btn->FontIsShadow_set(true);
+new CButton(*_stack2, &_img16_cpma, EColor::Black, "The quick brown\nfox jumps over\nthe lazy snoopy-dog");
 CStack *_stack3 = new CStack(*_stack, nullptr, EOrientation::Horizontal, EAlignmentEx::Middle, CStack::EAlignmentStack::Middle, false);
 new CPrimitiveImage(*_stack3, EAlignment::Middle, EAlignment::Middle, CFrame::s_img1_frame_close, nullptr, nullptr);
 new CPrimitiveImage(*_stack3, EAlignment::Middle, EAlignment::Middle, CFrame::s_img1_frame_close, nullptr, EColor::Yellow);
