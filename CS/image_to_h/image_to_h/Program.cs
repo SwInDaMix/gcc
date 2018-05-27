@@ -6,12 +6,12 @@ using System.Text;
 using System.Drawing;
 using System.IO;
 
-namespace etaoscil_font_to_h
+namespace image_to_h
 {
     class Program
     {
         private const string __HEADER_HEAD =
-@"/// Generated with etaoscil_image_to_h
+@"/// Generated with image_to_h
 
 #define {1}_IMAGE_WIDTH {3}
 #define {1}_IMAGE_HEIGHT {4}
@@ -102,10 +102,10 @@ const {2} {0}_imgbmp[] = {{";
 
         static int Usage(string comment) {
             if (comment != null) Console.WriteLine(comment);
-            Console.WriteLine(@"etaoscil_image_to_h by SW (c) 2014
+            Console.WriteLine(@"image_to_h by SW (c) 2014
 
 Usage:
-    etaoscil_image_to_h imgfile.png output.imgheader pixelbits [VAR_NAME]
+    image_to_h imgfile.png output.imgheader pixelbits [VAR_NAME]
         imgfile.png         - inpuit image filename (.png .bmp .jpg)
         output.imgheader    - output filename of C compatible header with image data
         pixelbits           - image pixel bits (16, 8, 1)

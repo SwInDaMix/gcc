@@ -6,14 +6,14 @@ using System.Text;
 using System.Drawing;
 using System.IO;
 
-namespace etaoscil_font_to_h
+namespace font_to_h
 {
     class Program
     {
         private const int __CHAR_COLONS = 16, __CHAR_ROWS = 12, __CHAR_MIDDLE_ROWS = 6;
 
         private const string __HEADER_HEAD =
-@"/// Generated with etaoscil_font_to_h
+@"/// Generated with font_to_h
 
 #define {1}_HEIGHT {2}
 #define {1}_CHARS {3}
@@ -133,10 +133,10 @@ const unsigned char {0}_bmp_bold[] = {{";
 
         static int Usage(string comment) {
             if (comment != null) Console.WriteLine(comment);
-            Console.WriteLine(@"etaoscil_font_to_h by SW (c) 2014
+            Console.WriteLine(@"font_to_h by SW (c) 2014
 
 Usage:
-    etaoscil_font_to_h fontfile.png output.fontheader [VAR_NAME]
+    font_to_h fontfile.png output.fontheader [VAR_NAME]
         fontfile.png        - inpuit font filename 16x6 charmap image (.png .bmp .jpg) where non-black dots is char dots
         output.fontheader   - output filename of C compatible header with font data
         VAR_NAME            - optional var name used in header file (by default is a fontfile.png without extention eg. 'fontfile'");
