@@ -51,6 +51,8 @@ typedef bool bit;
 	+ (1 & (((x) & 0xFFFFFFFF) == 0)) )
 
 #ifdef __cplusplus
+using namespace std;
+
 #define ENUM_CLASS_OPERATORS(TEnum, TInt) \
 	inline TEnum operator &(TEnum x, TEnum y) { return static_cast<TEnum>(static_cast<TInt>(x) & static_cast<TInt>(y)); } \
 	inline TEnum operator |(TEnum x, TEnum y) { return static_cast<TEnum>(static_cast<TInt>(x) | static_cast<TInt>(y)); } \
@@ -114,7 +116,7 @@ private:
 public:
 	SNullable();
 	SNullable(T value);
-	SNullable(nullptr_t value);
+	SNullable(std::nullptr_t value);
 	SNullable(SNullable<T> const &other);
 	SNullable<T> &operator =(T const &other);
 	SNullable<T> &operator =(nullptr_t const &other);

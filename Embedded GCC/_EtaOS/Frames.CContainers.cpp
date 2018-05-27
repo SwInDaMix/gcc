@@ -32,7 +32,7 @@ CStack::CStack(CContainer &container_parent, SNullable<uint8_t> separation_width
 	uint32_t _width_max, _height_max, _count;
 	uint32_t _width_fit = _CalcFrameAlignment(&_width_max, &_height_max, &_count);
 	uint32_t _diff_width = _width_actual - _width_fit, _spread_rem; div_t _spread_div;
-	if(d_alignment_stack == EAlignmentStack::Spread) { _spread_div = div(_diff_width, _count); _spread_rem = 0; }
+	if(d_alignment_stack == EAlignmentStack::Spread) { _spread_div = div((int)_diff_width, (int)_count); _spread_rem = 0; }
 	CFrame *_frame = ChildFrameFirst_get(); uint32_t _current = 0, _x, _y;
 	SPoint const &_pt = Location_get(); if(d_orientation == EOrientation::Horizontal) { _x = _pt.X_get(); _y = _pt.Y_get(); } else { _x = _pt.Y_get(); _y = _pt.X_get(); }
 	if(d_alignment_stack == EAlignmentStack::Middle || d_alignment_stack == EAlignmentStack::End) {
