@@ -93,7 +93,7 @@ class CTypeID {
 		virtual char const *type_name() const override { return #TClass; } \
 		virtual bool is_type_txt(char const *type_name_need) const override { return Compare(TClass::type_name(), type_name_need) || TBase::is_type_txt(type_name_need); } \
 	private:
-#define is_type(Var, TClass) ((Var) && ((CTypeID *)(Var))->is_type_txt(#TClass))
+#define is_type(Var, TClass) (((void *)(Var) != nullptr) && ((CTypeID *)(Var))->is_type_txt(#TClass))
 #define as_type(Var, TClass) (is_type(Var, TClass) ? (TClass *)(Var) : nullptr)
 #define typeid_ctor() { d_vtable = *((void*volatile*)this); }
 #define typeid_dtor() { *((void*volatile*)this) = d_vtable; }

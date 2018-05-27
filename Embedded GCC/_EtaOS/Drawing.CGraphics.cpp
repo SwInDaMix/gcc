@@ -149,7 +149,8 @@ static void _StringDraw_Char(SGraphics_DrawStringContext &dsc, char c) {
 		uint32_t _char_len = _fnt_char[_fnt_height];
 		uint32_t _fnt_height_plus = _fnt_height, _char_len_plus = _char_len; if(dsc.d_is_shadow) { _fnt_height_plus++; _char_len_plus++; }
 		if(!dsc.d_len_line) {
-			if(dsc.d_len_y) dsc.d_len_y++; dsc.d_len_y += _fnt_height;
+			if(dsc.d_len_y) dsc.d_len_y++;
+			dsc.d_len_y += _fnt_height;
 			if(dsc.d_do_draw && dsc.d_alignmen != EAlignment::Start && dsc.d_lines_len && dsc.d_lines_len_count) {
 				uint32_t _off = dsc.d_lines_len_max - *dsc.d_lines_len++;
 				dsc.d_x += (dsc.d_alignmen == EAlignment::Middle ? (_off >> 1) : (_off)); dsc.d_lines_len_count--;

@@ -41,6 +41,7 @@ extern "C" {
 //#define USART_DBG 0
 #define FRAMES_DBG 0
 #define DBG_USART_BAUDRATE 115200
+#define USART_YIELD() YIELD()
 
 extern void Assert(char const *msg, int n);
 

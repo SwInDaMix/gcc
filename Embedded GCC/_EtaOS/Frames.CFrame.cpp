@@ -321,8 +321,10 @@ void CWindow::_AttachWindowAsFirst() {
 	if(!s_window_last) s_window_last = this;
 }
 void CWindow::_DeattachWindow() {
-	if (d_window_prev) d_window_prev->d_window_next = d_window_next; s_window_first = d_window_next;
-	if (d_window_next) d_window_next->d_window_prev = d_window_prev; s_window_last = d_window_prev;
+	if (d_window_prev) d_window_prev->d_window_next = d_window_next;
+	s_window_first = d_window_next;
+	if (d_window_next) d_window_next->d_window_prev = d_window_prev;
+	s_window_last = d_window_prev;
 }
 void CWindow::_EnsureDiscardedSizesAndLocations() {
 	if(d_is_discard_sizes_and_locations) _DiscardSizesAndLocations();

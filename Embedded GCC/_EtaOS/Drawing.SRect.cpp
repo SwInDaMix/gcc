@@ -50,23 +50,27 @@ SRect const &SRect::operator &=(SRect const &rc) {
 
 SRect SRect::operator +(SEdge const &edg) const {
 	uint32_t _left = edg.d_left, _top = edg.d_top;
-	if(_left > d_location.d_x) _left = d_location.d_x; if(_top > d_location.d_y) _left = d_location.d_y;
+	if(_left > d_location.d_x) _left = d_location.d_x;
+	if(_top > d_location.d_y) _left = d_location.d_y;
 	return SRect(d_location.d_x - _left, d_location.d_y - _top, d_size.d_width + (_left + edg.d_right), d_size.d_height + (_top + edg.d_bottom));
 }
 SRect const &SRect::operator +=(SEdge const &edg) {
 	uint32_t _left = edg.d_left, _top = edg.d_top;
-	if(_left > d_location.d_x) _left = d_location.d_x; if(_top > d_location.d_y) _left = d_location.d_y;
+	if(_left > d_location.d_x) _left = d_location.d_x;
+	if(_top > d_location.d_y) _left = d_location.d_y;
 	d_location.d_x -= _left; d_location.d_y -= _top; d_size.d_width += (_left + edg.d_right); d_size.d_height += (_top + edg.d_bottom);
 	return *this;
 }
 SRect SRect::operator -(SEdge const &edg) const {
 	uint32_t _left = edg.d_left, _top = edg.d_top, _dw = _left + edg.d_right, _dh = _top + edg.d_bottom;
-	if(_dw > d_size.d_width) _dw = d_size.d_width; if(_dh > d_size.d_height) _dh = d_size.d_height;
+	if(_dw > d_size.d_width) _dw = d_size.d_width;
+	if(_dh > d_size.d_height) _dh = d_size.d_height;
 	return SRect(d_location.d_x + _left, d_location.d_y + _top, d_size.d_width - _dw, d_size.d_height - _dh);
 }
 SRect const &SRect::operator -=(SEdge const &edg) {
 	uint32_t _left = edg.d_left, _top = edg.d_top, _dw = _left + edg.d_right, _dh = _top + edg.d_bottom;
-	if(_dw > d_size.d_width) _dw = d_size.d_width; if(_dh > d_size.d_height) _dh = d_size.d_height;
+	if(_dw > d_size.d_width) _dw = d_size.d_width;
+	if(_dh > d_size.d_height) _dh = d_size.d_height;
 	d_location.d_x += _left; d_location.d_y += _top; d_size.d_width -= _dw; d_size.d_height -= _dh;
 	return *this;
 }
