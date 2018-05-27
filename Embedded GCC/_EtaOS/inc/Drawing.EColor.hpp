@@ -16,10 +16,13 @@
 
 #include "Types.h"
 
+typedef uint16_t lcd_color16;
+typedef uint8_t lcd_color8;
+
 namespace System {
 	namespace Drawing {
 		/// *********************************************************************
-		enum class EColor : uint16_t {
+		enum class EColor : lcd_color16 {
 			_Invalid			 = 0,
 			AliceBlue			 = LCD_COLOR16_FROM_R_G_B(0xF0, 0xF8, 0xFF),
 			AntiqueWhite		 = LCD_COLOR16_FROM_R_G_B(0xFA, 0xEB, 0xD7),

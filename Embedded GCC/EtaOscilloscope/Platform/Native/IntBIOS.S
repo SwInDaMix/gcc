@@ -1,6 +1,6 @@
 /********************* (C) 2014 Eta Software House. ********************
  Author    : Sw
- File Name : INTBIOS.h
+ File Name : IntBIOS.h
 ***********************************************************************/
 
 .syntax unified

@@ -10,7 +10,7 @@ ENTRY(Reset_Handler)
 
 SECTIONS {
 	.bios 0x08004200 (NOLOAD) : {
-		obj_arm/Platform/Native/INTBIOS.o
+		obj_arm/Platform/Native/IntBIOS.o
 	}
 
 	.text : {
