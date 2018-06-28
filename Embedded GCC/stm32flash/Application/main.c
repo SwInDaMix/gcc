@@ -35,7 +35,6 @@
 
 #include "binary.h"
 #include "hex.h"
-#include "windows.h"
 
 /* device globals */
 serial_t	*serial		= NULL;
@@ -74,45 +73,6 @@ void show_help(char *name);
 
 int main(int argc, char *argv[]) {
 	int ret = 1;
-
-
-	char* pcComPort= "COM7";
-	    DCB dcb;
-	    HANDLE hCom;
-	    hCom=CreateFile(pcComPort, GENERIC_READ | GENERIC_WRITE,
-	        0, NULL, OPEN_EXISTING, 0, NULL);
-	    if (hCom==INVALID_HANDLE_VALUE){
-	    	fprintf(stderr, "Ошибка открытия COM4!\n");
-	        return 1;
-	    }
-	    GetCommState(hCom, &dcb);
-	    dcb.BaudRate=CBR_115200;
-	    dcb.ByteSize=8;
-	    dcb.Parity=SPACEPARITY;
-	    dcb.StopBits=ONESTOPBIT;
-	    bool fSuccess=SetCommState(hCom, &dcb);
-	    if (!fSuccess){
-	    	fprintf(stderr, "Попытка вызвать SetCommState провалилась!\n");
-	        return 1;
-	    }
-	    fprintf(stderr, "COM порт %s успешно сконфигурирован\n", pcComPort);
-	    GetCommState(hCom, &dcb);
-	    fprintf(stderr, "Скорость порта %s равна %d\n", pcComPort, dcb.BaudRate);
-
-	    fprintf(stderr, "Нажмите клавишу для выхода...\n");
-    	while(true) {
-	    	char buf[128]; DWORD bytesRead;
-	    	ReadFile(hCom, buf, 1, &bytesRead, NULL);
-	    	        if (bytesRead>0)
-	    	        {
-	    	        	fprintf(stderr, "%02X ", (unsigned char)buf[0]);
-	    	        }
-    	}
-	    CloseHandle(hCom);
-	    return 0;
-
-
-
 
 	parser_err_t perr;
 	FILE *diag = stdout;
