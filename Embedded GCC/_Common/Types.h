@@ -159,7 +159,7 @@ extern "C" {
 #endif
 
 #ifndef __cplusplus
-#define nullptr 0
+#define nullptr ((void *)0)
 #endif
 
 #if __AVR__

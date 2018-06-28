@@ -3,33 +3,42 @@
  File Name : eta_memman_fibonachi.c
  ***********************************************************************/
 
+#include <stdbool.h>
 #include "eta_memman.h"
 #include "eta_dbg.h"
 
-#ifdef MEMMAN_FIBONACHI
+//#define MEMMAN_FIBONACHI
+//#define MEMMAN_SIMPLE
 
-typedef struct _sBMDLLRoot sBMDLLRoot;
-typedef struct _sBMDLLEntity sBMDLLEntity;
-typedef struct _sBMBlock sBMBlock;
+#if defined(MEMMAN_SIMPLE) || defined(MEMMAN_FIBONACHI)
 
-struct _sBMDLLRoot {
-	sBMBlock *FirstBlock;
-	sBMBlock *LastBlock;
+typedef struct sMemManDLLRoot sMemManDLLRoot;
+typedef struct sMemManDLLEntity sMemManDLLEntity;
+typedef struct sMemManBlock sMemManBlock;
+
+struct sMemManDLLRoot {
+	sMemManBlock *FirstBlock;
+	sMemManBlock *LastBlock;
 };
-struct _sBMDLLEntity {
-	sBMBlock *PrevBlock;
-	sBMBlock *NextBlock;
+struct sMemManDLLEntity {
+	sMemManBlock *PrevBlock;
+	sMemManBlock *NextBlock;
 };
-struct _sBMBlock {
-	sBMDLLEntity HeapDllEntity;
+
+#if defined(MEMMAN_FIBONACHI)
+
+struct sMemManBlock {
+    uint32_t Magic;
+	sMemManDLLEntity Entity;
 	struct {
-		uint16_t LeftBuddyCounter;
+		memman_size_t LeftBuddyCounter;
 		uint8_t BuddySizeIndex;
 		bool IsBusy;
 	} __attribute((packed));
 	union {
 		struct {
-			sBMDLLEntity CongruousDllEntity;
+			sMemManDLLEntity CongruousDllEntity;
+            // here might be some fields of free block for special purposes
 		} Free;
 		__extension__ struct {
 			// here might be some fields of busy block for special purposes
@@ -37,7 +46,169 @@ struct _sBMBlock {
 	};
 };
 
-static uint16_t const BMBlockSizeTable[] = {
+#elif defined(MEMMAN_SIMPLE)
+
+struct sMemManBlock {
+    uint32_t Magic;
+    sMemManDLLEntity Entity;
+    bool IsBusy;
+    union {
+        __extension__ struct {
+            // here might be some fields of free block for special purposes
+        } Free;
+        __extension__ struct {
+            // here might be some fields of busy block for special purposes
+        } Busy;
+    };
+};
+
+#endif
+
+#define MEMMAN_BLOCKMAGIC 0x12F5AC72
+
+#define MEMMAN_BLOCKPTR(ptr) ((sMemManBlock *)(ptr))
+#define MEMMAN_BYTESPTR(ptr) ((uint8_t *)(ptr))
+#define MEMMAN_BLOCKOVERHEAD_FREE ((memman_size_t)((uint32_t)(&MEMMAN_BLOCKPTR(0)->Free) + (uint32_t)(sizeof(MEMMAN_BLOCKPTR(0)->Free))))	// overhead of free block
+#define MEMMAN_BLOCKOVERHEAD_BUSY ((memman_size_t)((uint32_t)(&MEMMAN_BLOCKPTR(0)->Busy) + (uint32_t)(sizeof(MEMMAN_BLOCKPTR(0)->Busy))))	// overhead of busy block
+
+static sMemManDLLRoot MemManHeapDll;				// main heap double linked list
+static memman_size_t MemManHeapFree, MemManMinimumHeapFree;
+
+// Makes the block free
+__inline static void bm_makefree(sMemManBlock *block) {
+    block->IsBusy = false;
+}
+// Makes the block busy
+__inline static void bm_makebusy(sMemManBlock *block, memman_size_t size) {
+    block->IsBusy = true;
+    memset(((uint8_t *)block) + MEMMAN_BLOCKOVERHEAD_BUSY, 0, size);
+}
+// Checks block for magic
+__inline static void bm_checkmagic(sMemManBlock const *block) {
+    if(block && block->Magic != MEMMAN_BLOCKMAGIC) {
+        DBG_PutString("!!!!! memory integrity failure !!!!!"NL);
+        //while (true);
+    }
+}
+// Appends a new block as the last in heap block table
+__inline static void bm_dllappendlast_heap(sMemManBlock *block_new) {
+    if (MemManHeapDll.LastBlock) {
+        block_new->Entity.PrevBlock = MemManHeapDll.LastBlock;
+        block_new->Entity.NextBlock = nullptr;
+        MemManHeapDll.LastBlock->Entity.NextBlock = block_new;
+        MemManHeapDll.LastBlock = block_new;
+    }
+    else {
+        block_new->Entity.PrevBlock = block_new->Entity.NextBlock = nullptr;
+        MemManHeapDll.FirstBlock = MemManHeapDll.LastBlock = block_new;
+    }
+}
+// Appends a new block after the specified one in heap block table
+__inline static void bm_dllappendafter_heap(sMemManBlock *block, sMemManBlock *block_new) {
+    block_new->Entity.PrevBlock = block;
+    block_new->Entity.NextBlock = block->Entity.NextBlock;
+    if (block->Entity.NextBlock) block->Entity.NextBlock->Entity.PrevBlock = block_new;
+    block->Entity.NextBlock = block_new;
+}
+
+// Deletes the specified block from the heap block table
+__inline static void bm_dllremove_heap(sMemManBlock *block) {
+    if (block->Entity.PrevBlock) block->Entity.PrevBlock->Entity.NextBlock = block->Entity.NextBlock;
+    else MemManHeapDll.FirstBlock = block->Entity.NextBlock;
+    if (block->Entity.NextBlock) block->Entity.NextBlock->Entity.PrevBlock = block->Entity.PrevBlock;
+    else MemManHeapDll.LastBlock = block->Entity.PrevBlock;
+}
+
+#if defined(MEMMAN_SIMPLE)
+
+static uint8_t *MemManHeapEnd;
+
+// Inits block as free
+static void bm_initfree(sMemManBlock *block) {
+    block->Entity.PrevBlock = nullptr;
+    block->Entity.NextBlock = nullptr;
+    block->Magic = MEMMAN_BLOCKMAGIC;
+    block->IsBusy = false;
+}
+
+// Allocates a block in memory heap
+static void *memman_alloc(memman_size_t size, bool is_clear_block) {
+    // Search for the best suited block of free memory
+    sMemManBlock *_best_block = nullptr;
+    memman_size_t _best_size = (memman_size_t)-1;
+    sMemManBlock *_current_block = MemManHeapDll.FirstBlock;
+    bm_checkmagic(_current_block);
+    while (_current_block) {
+        bm_checkmagic(_current_block->Entity.NextBlock);
+        if(!_current_block->IsBusy) {
+            memman_size_t _current_size = (memman_size_t)((_current_block->Entity.NextBlock) ? MEMMAN_BYTESPTR(_current_block->Entity.NextBlock) - MEMMAN_BYTESPTR(_current_block) : MemManHeapEnd - MEMMAN_BYTESPTR(_current_block)) - MEMMAN_BLOCKOVERHEAD_BUSY;
+            if(_current_size == size) {
+                _best_block = _current_block; _best_size = _current_size;
+                break;
+            }
+            else if(_current_size > size && _best_size > _current_size) {
+                _best_block = _current_block; _best_size = _current_size;
+            }
+        }
+        _current_block = _current_block->Entity.NextBlock;
+    }
+
+    if(_best_block) {
+        memman_size_t _remains_size = _best_size - size;
+        bm_makebusy(_best_block, is_clear_block ? size : 0);
+        void *_block = MEMMAN_BYTESPTR(_best_block) + MEMMAN_BLOCKOVERHEAD_BUSY;
+        // Is there some space remains after this block?
+        if(_remains_size > max(MEMMAN_BLOCKOVERHEAD_FREE, MEMMAN_BLOCKOVERHEAD_BUSY)) {
+            sMemManBlock *_remains_block = MEMMAN_BLOCKPTR(MEMMAN_BYTESPTR(_block) + size);
+            bm_initfree(_remains_block);
+            bm_dllappendafter_heap(_best_block, _remains_block);
+            MemManHeapFree -= size;
+        }
+        else MemManHeapFree -= _best_size;
+        if (MemManMinimumHeapFree > MemManHeapFree) MemManMinimumHeapFree = MemManHeapFree;
+        return _block;
+    }
+    else return nullptr;
+}
+// Frees a block previously allocated by memman_alloc
+static void memman_free(void *block) {
+    if (block) {
+        sMemManBlock *_block = MEMMAN_BLOCKPTR(MEMMAN_BYTESPTR(((uint32_t)block & -4) - MEMMAN_BLOCKOVERHEAD_BUSY));
+        // Check block magic
+        bm_checkmagic(_block);
+        // Skip if the block is already free
+        if (_block->IsBusy) {
+            // Make the freeing block free
+            bm_makefree(_block);
+            memman_size_t _block_size = (memman_size_t)((_block->Entity.NextBlock) ? MEMMAN_BYTESPTR(_block->Entity.NextBlock) - MEMMAN_BYTESPTR(_block) : MemManHeapEnd - MEMMAN_BYTESPTR(_block)) - MEMMAN_BLOCKOVERHEAD_BUSY;
+            MemManHeapFree += _block_size;
+            // Try to merge with neighbour blocks if they are free
+            sMemManBlock *_block_prev = _block->Entity.PrevBlock; if(_block_prev && !_block_prev->IsBusy) bm_dllremove_heap(_block);
+            sMemManBlock *_block_next = _block->Entity.NextBlock; if(_block_next && !_block_next->IsBusy) bm_dllremove_heap(_block_next);
+        }
+    }
+    else { DBG_PutString("!!!!! memory block is not busy !!!!!"NL); }
+}
+
+// Initializes buddymem heap and creates initial blocks
+void memman_initialize(void *heap_start, memman_size_t heap_size) {
+    DBG_PutString("Buddy memory manager initialization"NL);
+    DBG_PutFormat(" - sizeof(sMemManBlockFree): %7d"NL, MEMMAN_BLOCKOVERHEAD_FREE);
+    DBG_PutFormat(" - sizeof(sMemManBlockBusy): %7d"NL, MEMMAN_BLOCKOVERHEAD_BUSY);
+    DBG_PutFormat(" - heap start:      0x%08X (%7d)"NL, heap_start, heap_start);
+    DBG_PutFormat(" - heap size:       0x%08X (%7d)"NL, heap_size, heap_size);
+    MemManHeapEnd = ((uint8_t *)heap_start) + heap_size;
+    heap_size -= MEMMAN_BLOCKOVERHEAD_BUSY;
+    MemManHeapFree = heap_size;
+    MemManMinimumHeapFree = MemManHeapFree;
+    sMemManBlock *_block_new = (sMemManBlock *)heap_start;
+    bm_initfree(_block_new);
+    bm_dllappendlast_heap(_block_new);
+}
+
+#elif defined(MEMMAN_FIBONACHI)
+
+static memman_size_t const MemManBlockSizeTable[] = {
 	24,			//  0
 	36,			//  1
 	60,			//  2
@@ -55,37 +226,32 @@ static uint16_t const BMBlockSizeTable[] = {
 	19164,		// 14
 	31008,		// 15
 	50172,		// 16
+    //	81180,		// 17
+    //	131352,		// 18
+    //	212532,		// 19
+    //	343884,		// 20
+    //	556416,		// 21
+    //	900300,		// 22
+    //	1456716,	// 23
+    //	2357016,	// 24
+    //	3813732,	// 25
+    //	6170748,	// 26
 };
+#define MemMan_ROWS sizeof_array(MemManBlockSizeTable)										// number of rows in free block DLL table
 
-#define BM_ROWS sizeof_array(BMBlockSizeTable)										// number of rows in free block DLL table
-#define BM_BMBLOCKPTR(ptr) ((sBMBlock *)ptr)
-#define BM_BLOCKOVERHEAD_FREE ((uint16_t)((uint32_t)(&BM_BMBLOCKPTR(0)->Free) + (uint32_t)(sizeof(BM_BMBLOCKPTR(0)->Free))))	// overhead of free block
-#define BM_BLOCKOVERHEAD_BUSY ((uint16_t)((uint32_t)(&BM_BMBLOCKPTR(0)->Busy) + (uint32_t)(sizeof(BM_BMBLOCKPTR(0)->Busy))))	// overhead of busy block
-
-static sBMDLLRoot BMHeapDll;				// main heap double linked list
-static sBMDLLRoot BMFreeDllTable[BM_ROWS];// double linked lists of congruous size block table
-static uint16_t BMHeapFree, BMMinimumHeapFree;
+static sMemManDLLRoot MemManFreeDllTable[MemMan_ROWS];  // double linked lists of congruous size block table
 
 // Inits block as free
-static void bm_initfree(sBMBlock *block, uint16_t lbc, uint8_t bsi) {
+static void bm_initfree(sMemManBlock *block, memman_size_t lbc, uint8_t bsi) {
 	block->LeftBuddyCounter = lbc;
 	block->BuddySizeIndex = bsi;
 	block->IsBusy = false;
 }
-// Makes the block free
-static void bm_makefree(sBMBlock *block) {
-	block->IsBusy = false;
-}
-// Makes the block busy
-static void bm_makebusy(sBMBlock *block) {
-	block->IsBusy = true;
-	memset(((uint8_t *)block) + BM_BLOCKOVERHEAD_BUSY, 0, BMBlockSizeTable[block->BuddySizeIndex] - BM_BLOCKOVERHEAD_BUSY);
-}
 // Searches the nearest small size that is bigger or equal to param 'size'
-static unsigned char bm_find_bsi(uint16_t size, uint8_t *lowbsi) {
+static uint8_t bm_find_bsi(memman_size_t size, uint8_t *lowbsi) {
 	uint8_t _lowbsi = 0;
-	uint8_t _highbsi = BM_ROWS - 1;
-	if (size <= BMBlockSizeTable[0]) {
+	uint8_t _highbsi = MemMan_ROWS - 1;
+	if (size <= MemManBlockSizeTable[0]) {
 		if (lowbsi) *lowbsi = 0;
 		return 0;
 	}
@@ -93,36 +259,19 @@ static unsigned char bm_find_bsi(uint16_t size, uint8_t *lowbsi) {
 	// Binary search for the nearest low and high BSI of the requested size
 	while (_lowbsi <= _highbsi) {
 		uint8_t _midbsi = (_lowbsi + _highbsi) >> 1;
-		if (BMBlockSizeTable[_midbsi] > size) {
-			_highbsi = _midbsi - 1;
-		}
-		else {
-			_lowbsi = _midbsi + 1;
-		}
+		if (MemManBlockSizeTable[_midbsi] > size) _highbsi = _midbsi - 1;
+		else _lowbsi = _midbsi + 1;
 	}
 	_lowbsi = _highbsi;
-	if (BMBlockSizeTable[_lowbsi] < size) _highbsi++;
+	if (MemManBlockSizeTable[_lowbsi] < size) _highbsi++;
 	if (lowbsi) *lowbsi = _lowbsi;
 
 	return _highbsi;
 }
 
-// Appends a new block as the last in heap block table
-__inline static void bm_dllappendlast_heap(sBMBlock *block_new) {
-	if (BMHeapDll.LastBlock) {
-		block_new->HeapDllEntity.PrevBlock = BMHeapDll.LastBlock;
-		block_new->HeapDllEntity.NextBlock = nullptr;
-		BMHeapDll.LastBlock->HeapDllEntity.NextBlock = block_new;
-		BMHeapDll.LastBlock = block_new;
-	}
-	else {
-		block_new->HeapDllEntity.PrevBlock = block_new->HeapDllEntity.NextBlock = nullptr;
-		BMHeapDll.FirstBlock = BMHeapDll.LastBlock = block_new;
-	}
-}
 // Appends a new block as the last in congruous size block table
-__inline static void bm_dllappendlast_cs(sBMBlock *block_new) {
-	sBMDLLRoot *_dll_cs = &BMFreeDllTable[block_new->BuddySizeIndex];
+__inline static void bm_dllappendlast_cs(sMemManBlock *block_new) {
+	sMemManDLLRoot *_dll_cs = &MemManFreeDllTable[block_new->BuddySizeIndex];
 	if (_dll_cs->LastBlock) {
 		block_new->Free.CongruousDllEntity.PrevBlock = _dll_cs->LastBlock;
 		block_new->Free.CongruousDllEntity.NextBlock = nullptr;
@@ -135,55 +284,28 @@ __inline static void bm_dllappendlast_cs(sBMBlock *block_new) {
 	}
 }
 
-// Appends a new block after the specified one in heap block table
-__inline static void bm_dllappendafter_heap(sBMBlock *block, sBMBlock *block_new) {
-	block_new->HeapDllEntity.PrevBlock = block;
-	block_new->HeapDllEntity.NextBlock = block->HeapDllEntity.NextBlock;
-	if (block->HeapDllEntity.NextBlock) {
-		block->HeapDllEntity.NextBlock->HeapDllEntity.PrevBlock = block_new;
-	}
-	block->HeapDllEntity.NextBlock = block_new;
-}
-
-// Deletes the specified block from the heap block table
-__inline static void bm_dllremove_heap(sBMBlock *block) {
-	if (block->HeapDllEntity.PrevBlock) {
-		block->HeapDllEntity.PrevBlock->HeapDllEntity.NextBlock = block->HeapDllEntity.NextBlock;
-	}
-	else BMHeapDll.FirstBlock = block->HeapDllEntity.NextBlock;
-	if (block->HeapDllEntity.NextBlock) {
-		block->HeapDllEntity.NextBlock->HeapDllEntity.PrevBlock = block->HeapDllEntity.PrevBlock;
-	}
-	else BMHeapDll.LastBlock = block->HeapDllEntity.PrevBlock;
-}
 // Deletes the specified block from the congruous size block table
-__inline static void bm_dllremove_cs(sBMBlock *block) {
-	sBMDLLRoot *_dll_cs = &BMFreeDllTable[block->BuddySizeIndex];
-	if (block->Free.CongruousDllEntity.PrevBlock) {
-		block->Free.CongruousDllEntity.PrevBlock->Free.CongruousDllEntity.NextBlock = block->Free.CongruousDllEntity.NextBlock;
-	}
+__inline static void bm_dllremove_cs(sMemManBlock *block) {
+	sMemManDLLRoot *_dll_cs = &MemManFreeDllTable[block->BuddySizeIndex];
+	if (block->Free.CongruousDllEntity.PrevBlock) block->Free.CongruousDllEntity.PrevBlock->Free.CongruousDllEntity.NextBlock = block->Free.CongruousDllEntity.NextBlock;
 	else _dll_cs->FirstBlock = block->Free.CongruousDllEntity.NextBlock;
-
-	if (block->Free.CongruousDllEntity.NextBlock) {
-		block->Free.CongruousDllEntity.NextBlock->Free.CongruousDllEntity.PrevBlock = block->Free.CongruousDllEntity.PrevBlock;
-	}
+	if (block->Free.CongruousDllEntity.NextBlock) block->Free.CongruousDllEntity.NextBlock->Free.CongruousDllEntity.PrevBlock = block->Free.CongruousDllEntity.PrevBlock;
 	else _dll_cs->LastBlock = block->Free.CongruousDllEntity.PrevBlock;
 }
 
 // Allocates a block in memory heap
-static void *memman_alloc(uint16_t size) {
-	void *_block_ptr = nullptr;
+static void *memman_alloc(memman_size_t size, bool is_clear_block) {
 	// find minimum BSI for the size + overhead
-	size += BM_BLOCKOVERHEAD_BUSY;
+	size += MEMMAN_BLOCKOVERHEAD_BUSY;
 	uint8_t _bsi_need = bm_find_bsi(size, nullptr);
 
 	// Table lookup
-	sBMBlock *_block = BMFreeDllTable[_bsi_need].FirstBlock;
+	sMemManBlock *_block = MemManFreeDllTable[_bsi_need].FirstBlock;
 	if (!_block) {
 		// No free block with requested BSI. Try to find a free one with higher BSI and divide it into buddies
 		uint8_t _bsi_higher = _bsi_need;
-		while (++_bsi_higher < BM_ROWS && !_block) {
-			_block = BMFreeDllTable[_bsi_higher].FirstBlock;
+		while (++_bsi_higher < MemMan_ROWS && !_block) {
+			_block = MemManFreeDllTable[_bsi_higher].FirstBlock;
 		}
 
 		if (_block) {
@@ -194,7 +316,7 @@ static void *memman_alloc(uint16_t size) {
 				_block->LeftBuddyCounter++;
 				// Create right buddy
 				uint8_t _bsi_right = _block->BuddySizeIndex;
-				sBMBlock *_block_right = (sBMBlock *) ((void *) (((uint8_t *) _block) + BMBlockSizeTable[_bsi_right--]));
+				sMemManBlock *_block_right = MEMMAN_BLOCKPTR(MEMMAN_BYTESPTR(_block) + MemManBlockSizeTable[_bsi_right--]);
 				bm_initfree(_block_right, 0, _bsi_right);
 				bm_dllappendafter_heap(_block, _block_right);
 
@@ -212,23 +334,22 @@ static void *memman_alloc(uint16_t size) {
 
 	if (_block) {
 		// We've found required block with appropriate BSI
-		bm_makebusy(_block);
-		_block_ptr = (uint8_t *) _block + BM_BLOCKOVERHEAD_BUSY;
-		BMHeapFree -= BMBlockSizeTable[_block->BuddySizeIndex];
-		if (BMMinimumHeapFree > BMHeapFree) BMMinimumHeapFree = BMHeapFree;
+		bm_makebusy(_block, is_clear_block ? (MemManBlockSizeTable[_block->BuddySizeIndex] - MEMMAN_BLOCKOVERHEAD_BUSY) : 0);
+		MemManHeapFree -= MemManBlockSizeTable[_block->BuddySizeIndex];
+		if (MemManMinimumHeapFree > MemManHeapFree) MemManMinimumHeapFree = MemManHeapFree;
+		return _block + MEMMAN_BLOCKOVERHEAD_BUSY;
 	}
-
-	return _block_ptr;
+	else return nullptr;
 }
 // Frees a block previously allocated by memman_alloc
 static void memman_free(void *block) {
 	if (block) {
-		sBMBlock *_block = (sBMBlock *) ((void *) (((int32_t) block & -4) - BM_BLOCKOVERHEAD_BUSY));
+		sMemManBlock *_block = MEMMAN_BLOCKPTR(MEMMAN_BYTESPTR(((uint32_t)block & -4) - MEMMAN_BLOCKOVERHEAD_BUSY));
 		// Skip if the block is already free
 		if (_block->IsBusy) {
 			// Make the freeing block free
 			bm_makefree(_block);
-			BMHeapFree += BMBlockSizeTable[_block->BuddySizeIndex];
+			MemManHeapFree += MemManBlockSizeTable[_block->BuddySizeIndex];
 
 			// Trying recursively to merge blocks if they are buddies
 			while (1) {
@@ -236,7 +357,7 @@ static void memman_free(void *block) {
 				if (_block->LeftBuddyCounter) {
 					// We've got left buddy block
 					//  check weather the next buddy is right, free and its BSI is 1 less than BSI of the left buddy
-					sBMBlock *_block_right = _block->HeapDllEntity.NextBlock;
+					sMemManBlock *_block_right = _block->Entity.NextBlock;
 					if (!_block_right || _block_right->IsBusy || _block_right->LeftBuddyCounter || _block_right->BuddySizeIndex != (_bsi - 1)) break;
 					bm_dllremove_heap(_block_right);
 					bm_dllremove_cs(_block_right);
@@ -245,7 +366,7 @@ static void memman_free(void *block) {
 				else {
 					// We've got right buddy block
 					//  check weather the previous buddy is left, free and its BSI is 1 greater than BSI of the right buddy
-					sBMBlock *_block_left = _block->HeapDllEntity.PrevBlock;
+					sMemManBlock *_block_left = _block->Entity.PrevBlock;
 					if (!_block_left || _block_left->IsBusy || !_block_left->LeftBuddyCounter || _block_left->BuddySizeIndex != (_bsi + 1)) break;
 					bm_dllremove_heap(_block);
 					bm_dllremove_cs(_block_left);
@@ -261,44 +382,47 @@ static void memman_free(void *block) {
 }
 
 // Initializes buddymem heap and creates initial blocks
-void memman_initialize(void *heap_start, uint16_t heap_size) {
+void memman_initialize(void *heap_start, memman_size_t heap_size) {
 	DBG_PutString("Buddy memory manager initialization"NL);
-	DBG_PutFormat(" - sizeof(sBMBlockFree): %7d"NL, BM_BLOCKOVERHEAD_FREE);
-	DBG_PutFormat(" - sizeof(sBMBlockBusy): %7d"NL, BM_BLOCKOVERHEAD_BUSY);
+	DBG_PutFormat(" - sizeof(sMemManBlockFree): %7d"NL, MEMMAN_BLOCKOVERHEAD_FREE);
+	DBG_PutFormat(" - sizeof(sMemManBlockBusy): %7d"NL, MEMMAN_BLOCKOVERHEAD_BUSY);
 	DBG_PutFormat(" - heap start:      0x%08X (%7d)"NL, heap_start, heap_start);
 	DBG_PutFormat(" - heap size:       0x%08X (%7d)"NL, heap_size, heap_size);
-	uint16_t _sz = BM_BLOCKOVERHEAD_BUSY;
+	memman_size_t _sz = MEMMAN_BLOCKOVERHEAD_BUSY;
 	heap_size -= _sz;
-	while (heap_size >= BMBlockSizeTable[0]) {
-		sBMBlock *_block_new = (sBMBlock *) heap_start;
-		uint16_t _block_new_size = heap_size;
+	while (heap_size >= MemManBlockSizeTable[0]) {
+		sMemManBlock *_block_new = MEMMAN_BLOCKPTR(heap_start);
+		memman_size_t _block_new_size = heap_size;
 		uint8_t _bsi_low;
 		bm_find_bsi(_block_new_size, &_bsi_low);
-		_block_new_size = BMBlockSizeTable[_bsi_low];
+		_block_new_size = MemManBlockSizeTable[_bsi_low];
 		DBG_PutFormat("  - new block:  0x%08X (%7d)"NL, _block_new_size, _block_new_size);
 		bm_initfree(_block_new, 0, _bsi_low);
 		bm_dllappendlast_heap(_block_new);
 		bm_dllappendlast_cs(_block_new);
 		heap_start = ((uint8_t *)heap_start) + _block_new_size;
 		heap_size -= _block_new_size;
-		BMHeapFree += _block_new_size;
+		MemManHeapFree += _block_new_size;
 	}
-	BMMinimumHeapFree = BMHeapFree;
+	MemManMinimumHeapFree = MemManHeapFree;
 }
 // Returns amount of free bytes available for allocation
-uint16_t memman_get_free() { return BMHeapFree; }
+memman_size_t memman_get_free() { return MemManHeapFree; }
 // Returns amount of minimum free bytes ever remaining since last system boot
-uint16_t memman_get_minimum_free() { return BMMinimumHeapFree; }
+memman_size_t memman_get_minimum_free() { return MemManMinimumHeapFree; }
 // Returns amount of maximum busy bytes ever allocated since last system boot
-uint16_t memman_get_maximum_busy() { return BMHeapFree - BMMinimumHeapFree; }
+memman_size_t memman_get_maximum_busy() { return MemManHeapFree - MemManMinimumHeapFree; }
 // Returns amount of maximum free bytes that can be allocated as single block
-uint16_t memman_get_maximum_free_block() {
-	uint8_t _bsi = BM_ROWS - 1;
-	do { if(BMFreeDllTable[_bsi].FirstBlock) return BMBlockSizeTable[_bsi]; } while(_bsi--);
+memman_size_t memman_get_maximum_free_block() {
+	uint8_t _bsi = MemMan_ROWS - 1;
+	do { if(MemManFreeDllTable[_bsi].FirstBlock) return MemManBlockSizeTable[_bsi]; } while(_bsi--);
 	return 0;
 }
 
-void *malloc(size_t size) { return memman_alloc((uint16_t) size); }
+#endif
+
+void *malloc(size_t size) { return memman_alloc((memman_size_t)size, false); }
+void *calloc(size_t number, size_t size) { return memman_alloc((memman_size_t)number * size, true); }
 void free(void *ptr) { memman_free(ptr); }
 
 #else
@@ -307,6 +431,7 @@ __attribute__ ((noreturn))
 static void memman_error_mes() { DBG_PutString("Memory manager is disabled"NL); while(true); }
 
 void *malloc(size_t size) { memman_error_mes(); }
+void *calloc(size_t number, size_t size) { memman_error_mes(); }
 void free(void *ptr) { memman_error_mes(); }
 
 #endif

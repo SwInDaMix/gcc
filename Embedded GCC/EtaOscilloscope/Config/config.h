@@ -11,7 +11,8 @@
 extern "C" {
 #endif
 
-#define MEMMAN_FIBONACHI
+//#define MEMMAN_FIBONACHI
+#define MEMMAN_SIMPLE
 
 #define YIELD() {  }
 

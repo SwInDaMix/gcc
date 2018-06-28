@@ -17,8 +17,8 @@ typedef enum {
 
 #define FMTCFG_MAX_STRING_SIZE -1			// limits the ever possible length of the formated string (-1 means unlimited)
 
-typedef struct _sFmtStream sFmtStream;
-struct _sFmtStream {
+typedef struct sFmtStream sFmtStream;
+struct sFmtStream {
 	void (*putc)(sFmtStream *strm, char c);
 	uint32_t limit;
 	uint32_t length;

@@ -1,5 +1,5 @@
 include Makefile_common.mkinc
-#include ../_Common/Makefile_lto.mkinc
+include ../_Common/Makefile_lto.mkinc
 
 CROSS=avr-
 PLATFORM=NATIVE
