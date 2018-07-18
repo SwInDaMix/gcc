@@ -1,0 +1,18 @@
+APPLICATION_DIR = Application
+
+VERY_COMMON_FLAGS += -DVER_APP="\"1.0.0001\""
+
+INCLUDES += -I $(APPLICATION_DIR)/inc
+
+AS_SRCS += $(wildcard $(APPLICATION_DIR)/*.S)
+C_SRCS += $(wildcard $(APPLICATION_DIR)/*.c)
+CPP_SRCS += $(wildcard $(APPLICATION_DIR)/*.cpp)
+DAT_SRCS += $(wildcard $(APPLICATION_DIR)/dats/*.dat)
+
+REBUILD_FORCING_MAKEFILES += $(APPLICATION_DIR)/Makefile_application.mkinc
+REBUILD_FORCING_FILES += $(wildcard $(APPLICATION_DIR)/inc/*.h)
+REBUILD_FORCING_FILES += $(wildcard $(APPLICATION_DIR)/inc/*.hpp)
+REBUILD_FORCING_FILES += $(wildcard $(APPLICATION_DIR)/inc/*.inc)
+REBUILD_FORCING_FILES += $(wildcard $(APPLICATION_DIR)/inc/*.inc)
+
+DUMMY = 1
