@@ -19,10 +19,10 @@ typedef enum {
     DRV_STATE_IDLE,
     DRV_STATE_EBRAKING,
     DRV_STATE_ACCELERATING
-} eDrvState;
+} eDrv_State;
 
 void drv_init(sSettings const *settings, sSensors const *sensors);
 void drv_cycle(sSettings const *settings, sControls const *controls, sSensors const *sensors);
 
-eDrvState drv_get_state();
+eDrv_State drv_get_state();
 bool drv_is_cruise_control();

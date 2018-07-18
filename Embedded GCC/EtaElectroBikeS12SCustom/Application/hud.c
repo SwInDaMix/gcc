@@ -36,7 +36,7 @@ void hud_cycle(sSettings const *settings, sControls const *controls, sSensors co
         uint16_t _motor_current_filtered;
         uint16_t _erps;
         uint8_t _adc_thumb_throttle, _adc_thumb_brake;
-        eDrvState _drv_state;
+        eDrv_State _drv_state;
 
         _s_timer_prev = _timer_current;
 

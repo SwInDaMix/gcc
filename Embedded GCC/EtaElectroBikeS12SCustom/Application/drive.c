@@ -13,7 +13,7 @@
 static int16_t s_i_term;
 
 static uint16_t s_max_erps_predicted, s_max_erps_predicted_acc;
-static eDrvState s_state = DRV_STATE_IDLE;
+static eDrv_State s_state = DRV_STATE_IDLE;
 static bool s_is_auto_stabilization = false;
 static bool s_is_cruise_control_idle = false;
 static uint8_t s_cruise_control_min_duty_cycle;
@@ -181,7 +181,7 @@ void drv_cycle(sSettings const *settings, sControls const *controls, sSensors co
     }
 }
 
-eDrvState drv_get_state() { return s_state; }
+eDrv_State drv_get_state() { return s_state; }
 bool drv_is_cruise_control() { return s_cruise_control_min_duty_cycle != 0; }
 
 void drv_pi_reset() { s_i_term = 0; }

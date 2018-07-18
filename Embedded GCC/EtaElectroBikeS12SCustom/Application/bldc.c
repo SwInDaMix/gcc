@@ -24,7 +24,7 @@ typedef enum {
     BLDC_HallPosition_180,
     BLDC_HallPosition_240,
     BLDC_HallPosition_300,
-} sBLDC_HallPosition;
+} eBLDC_HallPosition;
 
 typedef enum {
     BLDC_MotorState_Idle = 0,
@@ -34,7 +34,7 @@ typedef enum {
     BLDC_MotorState_Error_Hall = 4,
     BLDC_MotorState__MaskRotating = 3,
     BLDC_MotorState__MaskError = 4
-} sBLDC_MotorState;
+} eBLDC_MotorState;
 
 uint8_t const s_pwm_table_3harm_sine[256] = {
         98, 103, 109, 115, 120, 126, 131, 136, 142, 147, 152, 157, 162, 167, 171, 176,
@@ -89,8 +89,8 @@ uint8_t const s_pwm_table_pure_sine[256] = {
 // BLDC_HallPosition_180, BLDC_HallPosition_300, BLDC_HallPosition_240, BLDC_HallPosition_60, BLDC_HallPosition_120, BLDC_HallPosition_0
 // BLDC_HallPosition_120, BLDC_HallPosition_240, BLDC_HallPosition_180, BLDC_HallPosition_0, BLDC_HallPosition_60, BLDC_HallPosition_300 a - b - c
 
-sBLDC_HallPosition const s_hall_positions_forward[8] = { BLDC_HallPosition_Invalid, BLDC_HallPosition_120, BLDC_HallPosition_0, BLDC_HallPosition_60, BLDC_HallPosition_240, BLDC_HallPosition_180, BLDC_HallPosition_300, BLDC_HallPosition_Invalid };
-sBLDC_HallPosition const s_hall_positions_reverse[8] = { BLDC_HallPosition_Invalid, BLDC_HallPosition_120, BLDC_HallPosition_240, BLDC_HallPosition_180, BLDC_HallPosition_0, BLDC_HallPosition_60, BLDC_HallPosition_300, BLDC_HallPosition_Invalid };
+eBLDC_HallPosition const s_hall_positions_forward[8] = { BLDC_HallPosition_Invalid, BLDC_HallPosition_120, BLDC_HallPosition_0, BLDC_HallPosition_60, BLDC_HallPosition_240, BLDC_HallPosition_180, BLDC_HallPosition_300, BLDC_HallPosition_Invalid };
+eBLDC_HallPosition const s_hall_positions_reverse[8] = { BLDC_HallPosition_Invalid, BLDC_HallPosition_120, BLDC_HallPosition_240, BLDC_HallPosition_180, BLDC_HallPosition_0, BLDC_HallPosition_60, BLDC_HallPosition_300, BLDC_HallPosition_Invalid };
 
 uint8_t const s_hall_angles[8] = {
         [BLDC_HallPosition_0] = BLDC_ANGLE_0,
@@ -108,7 +108,7 @@ uint8_t const s_hall_diff_multiplicand[8] = {
         [BLDC_HallPosition_240] = 5,
         [BLDC_HallPosition_300] = 6,
 };
-sBLDC_HallPosition const s_hall_prev_forward_pos[8] = {
+eBLDC_HallPosition const s_hall_prev_forward_pos[8] = {
         [BLDC_HallPosition_0] = BLDC_HallPosition_300,
         [BLDC_HallPosition_60] = BLDC_HallPosition_0,
         [BLDC_HallPosition_120] = BLDC_HallPosition_60,
@@ -116,7 +116,7 @@ sBLDC_HallPosition const s_hall_prev_forward_pos[8] = {
         [BLDC_HallPosition_240] = BLDC_HallPosition_180,
         [BLDC_HallPosition_300] = BLDC_HallPosition_240,
 };
-sBLDC_HallPosition const s_hall_prev_backward_pos[8] = {
+eBLDC_HallPosition const s_hall_prev_backward_pos[8] = {
         [BLDC_HallPosition_0] = BLDC_HallPosition_60,
         [BLDC_HallPosition_60] = BLDC_HallPosition_120,
         [BLDC_HallPosition_120] = BLDC_HallPosition_180,
@@ -139,9 +139,9 @@ static uint16_t s_current_3;
 static uint16_t s_current_4;
 static uint16_t s_current_5;
 
-static sBLDC_MotorState _s_motor_state = BLDC_MotorState_Idle;
+static eBLDC_MotorState _s_motor_state = BLDC_MotorState_Idle;
 static uint8_t _s_hall_correctness = BLDC_HALL_CORRECTNESS;
-static sBLDC_HallPosition _s_hall_position_prev;
+static eBLDC_HallPosition _s_hall_position_prev;
 
 static uint16_t _s_cycles_hall_cnt = 65535;
 static uint16_t _s_cycles_revolution_cnt = 65535;
@@ -168,7 +168,7 @@ static bool _s_is_rotates_backward;
 #define _can_drive() (!_is_error() && !_s_is_rotates_backward)
 
 static void _pwm_overflow_callback() {
-    sBLDC_HallPosition _s_hall_position;
+    eBLDC_HallPosition _s_hall_position;
 
     bool _is_pure_sine = s_is_pure_sine;
     bool _is_reverse = s_is_reverse;
