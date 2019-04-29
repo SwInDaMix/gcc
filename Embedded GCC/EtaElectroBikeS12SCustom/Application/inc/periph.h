@@ -83,8 +83,8 @@
 
 #define TIMER_TP_MS(msecs) ((uint16_t)((FCPU / 1000) * (uint64_t)msecs / 8192L))
 
-#define PERIPH_ADC_STABILIZATION_PERIOD_MS 500
-#define PERIPH_ADC_CALIBRATION_READS_PERIOD_MS 2000
+#define PERIPH_ADC_STABILIZATION_PERIOD_MS 500U
+#define PERIPH_ADC_CALIBRATION_READS_PERIOD_MS 2000U
 
 typedef void (*periph_bldc_pwm_overflow_callback_t)();
 typedef void (*periph_overcurrent_callback_t)();

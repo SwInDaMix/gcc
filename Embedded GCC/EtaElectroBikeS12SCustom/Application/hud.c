@@ -54,9 +54,9 @@ void hud_cycle(sSettings const *settings, sControls const *controls, sSensors co
         else _battery_status = KTLCD3_Battery_Flashing;
 
         // signal an error if any
-        if (sensors->battery_volts <= HUD_BATTERY_PACK_VOLTS_CRTITICAL) _error = KTLCD3_Error_91_BatteryUnderVoltage;
+        if (sensors->battery_volts <= HUD_BATTERY_PACK_VOLTS_CRITITICAL) _error = KTLCD3_Error_91_BatteryUnderVoltage;
         else if (bldc_is_error()) _error = KTLCD3_Error_03_Hall;
-        //else if (_adc_thumb_brake < HUD_ADC_THUMB_CRITICAL_MIN_VALUE || _adc_thumb_brake > HUD_ADC_THUMB_CRITICAL_MAX_VALUE) _error = KTLCD3_Error_02_Brake;
+        else if (_adc_thumb_brake < HUD_ADC_THUMB_CRITICAL_MIN_VALUE || _adc_thumb_brake > HUD_ADC_THUMB_CRITICAL_MAX_VALUE) _error = KTLCD3_Error_02_Brake;
         else if (_adc_thumb_throttle < HUD_ADC_THUMB_CRITICAL_MIN_VALUE || _adc_thumb_throttle > HUD_ADC_THUMB_CRITICAL_MAX_VALUE) _error = KTLCD3_Error_01_Throttle;
 
         // display moving status
@@ -80,7 +80,7 @@ void hud_cycle(sSettings const *settings, sControls const *controls, sSensors co
         periph_set_taillight_pwm_duty_cycle(_taillight_pwm);
 
 #ifndef DEBUG
-        ktlcd3_update(_battery_status, _error, _moving_status, _wheel_rotation_period, (uint8_t)_motor_current_filtered, sensors->motor_temperature);
+        ktlcd3_update(_battery_status, _error, _moving_status, _wheel_rotation_period, _motor_current_filtered, sensors->motor_temperature);
 #endif
     }
 }

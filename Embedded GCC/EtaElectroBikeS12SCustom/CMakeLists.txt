@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 2.8.4)
 project(EtaElectroBikeS12SCustom C)
 
 include_directories("../_STM8S10x_StdPeriph")

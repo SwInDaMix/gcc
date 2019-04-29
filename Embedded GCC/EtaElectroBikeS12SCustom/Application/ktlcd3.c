@@ -59,7 +59,7 @@ static uint8_t const s_assist_level_duty_cycles_lookup[] = {
         [KTLCD3_AssistLevel3] = _calc_dc_by_ratio(0.6),
         [KTLCD3_AssistLevel4] = _calc_dc_by_ratio(0.8),
         [KTLCD3_AssistLevel5] = _calc_dc_by_ratio(1.0),
-        [KTLCD3_AssistLevelWalk] = _calc_dc_by_ratio(0.1),
+        [KTLCD3_AssistLevelWalk] = _calc_dc_by_ratio(0.5),
 };
 
 static sKTLCD3_From s_received_struct;

@@ -11,8 +11,6 @@
 #include "ktlcd3.h"
 #include "utils.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(void) {
     sSettings const *_settings;
     sControls const *_controls;
@@ -27,7 +25,7 @@ int main(void) {
     _sensors = sensors_get_current();
 
     bldc_init(BLDC_IS_PURE_SINE, BLDC_IS_REVERSE, BLDC_IS_INVERT_HALLS, BLDC_CORRECTION_ANGLE);
-    drv_init(_settings, _sensors);
+    drv_init(_settings, _sensors, false, BLDC_VOLTAGE_TO_ERPS_FACTOR);
     hud_init(_settings, _sensors);
 
     periph_wdt_enable();
@@ -66,6 +64,3 @@ int main(void) {
 //        periph_set_headlight(periph_get_is_braking());
     }
 }
-#pragma clang diagnostic pop
-
-
