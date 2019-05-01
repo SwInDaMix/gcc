@@ -5,7 +5,7 @@
 #include "bldc.h"
 
 #define _gpio_init(name) GPIO_Init(name##__PORT, name##__PINS, name##__MODE)
-#define _gpio_set_exti(name) EXTI_SetExtIntSensitivity(name##__ITPORT, name##__SENS)
+#define _gpio_set_exti(port) EXTI_SetExtIntSensitivity(EXTI_PORT_GPIO##port, EXTI_IT_PORT##port##_SENS)
 #define _gpio_read(name) GPIO_ReadInputPin(name##__PORT, name##__PINS)
 #define _gpio_write(name, value) if(value) GPIO_WriteHigh(name##__PORT, name##__PINS); else GPIO_WriteLow(name##__PORT, name##__PINS)
 
@@ -13,6 +13,7 @@
 #define _gpio_triger_EXTI_SENSITIVITY_FALL_ONLY(name, callback) if((callback) && (_xor & name##__PINS) && !(_current & name##__PINS)) { callback(); }
 
 #define _periph_read_adc_channel(name) (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)(name##__CH << 1)))
+#define _periph_read_adc_channel_10bits(name) ((((uint16_t)_periph_read_adc_channel(name)) << 2) | (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)((name##__CH << 1) + 1))))
 
 static periph_bldc_pwm_overflow_callback_t s_bldc_pwm_overflow_callback = 0;
 static periph_overcurrent_callback_t s_periph_overcurrent_callback = 0;
@@ -21,20 +22,21 @@ static periph_speed_callback_t s_periph_speed_callback = 0;
 static periph_brake_callback_t s_periph_brake_callback = 0;
 static periph_uart_on_received_callback_t s_periph_uart_on_received_callback = 0;
 
-static uint8_t s_periph_adc_counter = 0;
-static uint8_t s_periph_adc_phase_b_current;
-static uint8_t s_periph_adc_phase_b_current_calibration;
-static uint8_t s_periph_adc_motor_current;
-static uint8_t s_periph_adc_motor_filtered_current;
-static uint8_t s_periph_adc_battery_voltage;
-static uint8_t s_periph_adc_motor_temperature;
+static uint16_t s_periph_adc_counter = 0;
+static uint16_t s_periph_adc_phase_b_current_calibration;
+static uint16_t s_periph_adc_phase_b_current;
+static uint16_t s_periph_adc_motor_current_calibration;
+static uint16_t s_periph_adc_motor_current;
+static uint16_t s_periph_adc_motor_current_filtered;
+static uint16_t s_periph_adc_motor_temperature;
+static uint16_t s_periph_adc_battery_voltage;
 static uint8_t s_periph_adc_thumb_throttle;
 static uint8_t s_periph_adc_thumb_brake;
 
 void periph_init() {
     uint16_t _timer_start;
-    uint8_t _counter_adc_prev = 0, _counter_adc;
-    uint16_t _adc_b_phase_current_calibration = 0, _adc_b_phase_current_cnt = 0;
+    uint16_t _counter_adc_prev = 0, _counter_adc, _counter_adc_calibration = 0;
+    uint32_t _adc_phase_b_current_calibration = 0, _adc_motor_current_calibration = 0, _adc_motor_filtered_current_calibration = 0;
 
     //set clock at the max 16MHz
     CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
@@ -57,36 +59,28 @@ void periph_init() {
     // Init GPIO to be used as ADC inputs
     _gpio_init(PHASE_B_CURRENT);
     _gpio_init(MOTOR_CURRENT);
-    _gpio_init(MOTOR_FILTERED_CURRENT);
-    _gpio_init(BATTERY_VOLTAGE);
     _gpio_init(MOTOR_TEMPERATURE);
+    _gpio_init(BATTERY_VOLTAGE);
     _gpio_init(THUMB_THROTTLE);
     _gpio_init(THUMB_BRAKE);
     ADC1_DeInit();
-    ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS,
-              ADC1_CHANNEL_9,
-              ADC1_PRESSEL_FCPU_D18,
-              ADC1_EXTTRIG_TIM,
-              DISABLE,
-              ADC1_ALIGN_LEFT,
-              ADC1_SCHMITTTRIG_ALL,
-              DISABLE);
+    ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, ADC1_CHANNEL_9, ADC1_PRESSEL_FCPU_D18, ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_LEFT, ADC1_SCHMITTTRIG_ALL, DISABLE);
     ADC1_ScanModeCmd(ENABLE);
     ADC1_ITConfig(ADC1_IT_EOCIE, ENABLE);
     ADC1_Cmd(ENABLE);
 
     // General purpose inputs/outputs
-    _gpio_init(MOTOR_OVERCURRENT);
+    //_gpio_init(MOTOR_OVERCURRENT);
     _gpio_init(BRAKE);
     _gpio_init(PAS);
     _gpio_init(SPEED);
     _gpio_init(HEAD_LIGHT_FEEDBACK);
     _gpio_init(HEAD_LIGHT);
 
-    _gpio_set_exti(MOTOR_OVERCURRENT);
-    _gpio_set_exti(BRAKE);
-    _gpio_set_exti(PAS);
-    _gpio_set_exti(SPEED);
+    // configure EXTI for ports
+    _gpio_set_exti(A);
+    _gpio_set_exti(C);
+    _gpio_set_exti(D);
 
     // Period measure timer (ticks every
     TIM2_DeInit();
@@ -102,33 +96,41 @@ void periph_init() {
 
     // Init UART
     UART2_DeInit();
-    UART2_Init((uint32_t)UART_BAUDRATE,
-               UART2_WORDLENGTH_8D,
-               UART2_STOPBITS_1,
-               UART2_PARITY_NO,
-               UART2_SYNCMODE_CLOCK_DISABLE,
-               UART2_MODE_TXRX_ENABLE);
+    UART2_Init((uint32_t)UART_BAUDRATE, UART2_WORDLENGTH_8D, UART2_STOPBITS_1, UART2_PARITY_NO, UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
     UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
     UART2_Cmd(ENABLE);
 
+    // Configure watchdog
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    IWDG_SetPrescaler(IWDG_Prescaler_4);
+    IWDG_SetReload(1);
+    IWDG_ReloadCounter();
+
     enableInterrupts();
+    _timer_start = 0xFFF;
+    while (_timer_start--);
     DBG("Periph system initialization done!\n");
 
     _timer_start = periph_get_timer();
-    while ((periph_get_timer() - _timer_start) < TIMER_TP_MS(PERIPH_ADC_STABLE));
+    while ((periph_get_timer() - _timer_start) < TIMER_TP_MS(PERIPH_ADC_STABILIZATION_PERIOD_MS));
     DBG("Periph ADC stabilization done!\n");
 
+    //uint32_t _adc_phase_b_current_calibration = 0, _adc_motor_current_calibration = 0, _adc_motor_filtered_calibration = 0, _adc_calibration_cnt = 0;
     _timer_start = periph_get_timer();
-    while ((periph_get_timer() - _timer_start) < TIMER_TP_MS(PERIPH_ADC_STABLE_READ)) {
+    while ((periph_get_timer() - _timer_start) < TIMER_TP_MS(PERIPH_ADC_CALIBRATION_READS_PERIOD_MS)) {
         _counter_adc = periph_get_adc_counter();
-        if(_counter_adc_prev != _counter_adc) {
+        if (_counter_adc_prev != _counter_adc) {
             _counter_adc_prev = _counter_adc;
-            _adc_b_phase_current_calibration += periph_get_adc_phase_b_current();
-            _adc_b_phase_current_cnt++;
+            _adc_phase_b_current_calibration += periph_get_adc_phase_b_current();
+            _adc_motor_current_calibration += periph_get_adc_motor_current();
+            _counter_adc_calibration++;
         }
     }
-    s_periph_adc_phase_b_current_calibration = (uint8_t)(_adc_b_phase_current_calibration / _adc_b_phase_current_cnt);
-    DBGF("Periph ADC B current calibration done: %d (%d)!\n", s_periph_adc_phase_b_current_calibration, _adc_b_phase_current_cnt);
+    s_periph_adc_phase_b_current_calibration = (uint16_t)(_adc_phase_b_current_calibration / _counter_adc_calibration);
+    s_periph_adc_motor_current_calibration = (uint16_t)(_adc_motor_current_calibration / _counter_adc_calibration);
+    DBGF("Periph ADC calibration done with (%d) cycles\n", _counter_adc_calibration);
+    DBGF(" Phase B current: (%d)\n", s_periph_adc_phase_b_current_calibration);
+    DBGF(" Motor current: (%d)\n", s_periph_adc_motor_current_calibration);
 }
 
 void TIM1_UPD_OVF_TRG_BRK_IRQHandler() __interrupt(TIM1_UPD_OVF_TRG_BRK_IRQHANDLER) {
@@ -137,30 +139,26 @@ void TIM1_UPD_OVF_TRG_BRK_IRQHandler() __interrupt(TIM1_UPD_OVF_TRG_BRK_IRQHANDL
 }
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER) {
-    static uint16_t _s_periph_adc_phase_b_current_acc;
-    static uint16_t _s_periph_adc_motor_current_acc;
+    static uint16_t _s_periph_adc_motor_temperature_acc;
     static uint16_t _s_periph_adc_motor_filtered_current_acc;
     static uint16_t _s_periph_adc_battery_voltage_acc;
-    static uint16_t _s_periph_adc_motor_temperature_acc;
     static uint16_t _s_periph_adc_thumb_throttle_acc;
     static uint16_t _s_periph_adc_thumb_brake_acc;
 
     ADC1->CSR = ADC1_IT_EOCIE | (uint8_t)(ADC1_CHANNEL_9);
 
-    _s_periph_adc_phase_b_current_acc = _s_periph_adc_phase_b_current_acc - s_periph_adc_phase_b_current + _periph_read_adc_channel(PHASE_B_CURRENT);
-    s_periph_adc_phase_b_current = (uint8_t)(_s_periph_adc_phase_b_current_acc >> 2);
+    s_periph_adc_phase_b_current = _periph_read_adc_channel_10bits(PHASE_B_CURRENT);
 
-    _s_periph_adc_motor_current_acc = _s_periph_adc_motor_current_acc - s_periph_adc_motor_current + _periph_read_adc_channel(MOTOR_CURRENT);
-    s_periph_adc_motor_current = (uint8_t)(_s_periph_adc_motor_current_acc >> 2);
+    s_periph_adc_motor_current = _periph_read_adc_channel_10bits(MOTOR_CURRENT);
 
-    _s_periph_adc_motor_filtered_current_acc = _s_periph_adc_motor_filtered_current_acc - s_periph_adc_motor_filtered_current + _periph_read_adc_channel(MOTOR_FILTERED_CURRENT);
-    s_periph_adc_motor_filtered_current = (uint8_t)(_s_periph_adc_motor_filtered_current_acc >> 2);
+    _s_periph_adc_motor_filtered_current_acc = _s_periph_adc_motor_filtered_current_acc - s_periph_adc_motor_current_filtered + s_periph_adc_motor_current;
+    s_periph_adc_motor_current_filtered = _s_periph_adc_motor_filtered_current_acc >> 6;
 
-    _s_periph_adc_battery_voltage_acc = _s_periph_adc_battery_voltage_acc - s_periph_adc_battery_voltage + _periph_read_adc_channel(BATTERY_VOLTAGE);
-    s_periph_adc_battery_voltage = (uint8_t)(_s_periph_adc_battery_voltage_acc >> 2);
+    _s_periph_adc_motor_temperature_acc = _s_periph_adc_motor_temperature_acc - s_periph_adc_motor_temperature + _periph_read_adc_channel_10bits(MOTOR_TEMPERATURE);
+    s_periph_adc_motor_temperature = _s_periph_adc_motor_temperature_acc >> 6;
 
-    _s_periph_adc_motor_temperature_acc = _s_periph_adc_motor_temperature_acc - s_periph_adc_motor_temperature + _periph_read_adc_channel(MOTOR_TEMPERATURE);
-    s_periph_adc_motor_temperature = (uint8_t)(_s_periph_adc_motor_temperature_acc >> 2);
+    _s_periph_adc_battery_voltage_acc = _s_periph_adc_battery_voltage_acc - s_periph_adc_battery_voltage + _periph_read_adc_channel_10bits(BATTERY_VOLTAGE);
+    s_periph_adc_battery_voltage = _s_periph_adc_battery_voltage_acc >> 2;
 
     _s_periph_adc_thumb_throttle_acc = _s_periph_adc_thumb_throttle_acc - s_periph_adc_thumb_throttle + _periph_read_adc_channel(THUMB_THROTTLE);
     s_periph_adc_thumb_throttle = (uint8_t)(_s_periph_adc_thumb_throttle_acc >> 2);
@@ -207,8 +205,7 @@ void UART2_IRQHandler(void) __interrupt(UART2_IRQHANDLER) {
     if (UART2_GetFlagStatus(UART2_FLAG_RXNE) == SET) {
         _byte = UART2_ReceiveData8();
         if (s_periph_uart_on_received_callback) s_periph_uart_on_received_callback(_byte);
-    }
-    else {
+    } else {
         if (UART2_GetFlagStatus(UART2_FLAG_OR_LHE) == SET) {
             UART2_ReceiveData8();  // -> clear!
         }
@@ -235,12 +232,14 @@ void periph_set_bldc_pwm_outputs(bool is_enabled) {
 
 uint16_t periph_get_timer() { return TIM2_GetCounter(); }
 
-uint8_t periph_get_adc_counter() { return s_periph_adc_counter; }
-uint8_t periph_get_adc_phase_b_current() { return s_periph_adc_phase_b_current; }
-uint8_t periph_get_adc_motor_current() { return s_periph_adc_motor_current; }
-uint8_t periph_get_adc_motor_current_filtered() { return s_periph_adc_motor_filtered_current; }
-uint8_t periph_get_adc_battery_voltage() { return s_periph_adc_battery_voltage; }
-uint8_t periph_get_adc_motor_temperature() { return s_periph_adc_motor_temperature; }
+uint16_t periph_get_adc_counter() { return s_periph_adc_counter; }
+uint16_t periph_get_adc_phase_b_current_calibration() { return s_periph_adc_phase_b_current_calibration; }
+uint16_t periph_get_adc_phase_b_current() { return s_periph_adc_phase_b_current; }
+uint16_t periph_get_adc_motor_current_calibration() { return s_periph_adc_motor_current_calibration; }
+uint16_t periph_get_adc_motor_current() { return s_periph_adc_motor_current; }
+uint16_t periph_get_adc_motor_current_filtered() { return s_periph_adc_motor_current_filtered; }
+uint16_t periph_get_adc_motor_temperature() { return s_periph_adc_motor_temperature; }
+uint16_t periph_get_adc_battery_voltage() { return s_periph_adc_battery_voltage; }
 uint8_t periph_get_adc_thumb_throttle() { return s_periph_adc_thumb_throttle; }
 uint8_t periph_get_adc_thumb_break() { return s_periph_adc_thumb_brake; }
 
@@ -261,3 +260,6 @@ void putchar(unsigned char character) {
 }
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback) { s_periph_uart_on_received_callback = callback; }
 void periph_uart_putbyte(uint8_t byte) { putchar(byte); }
+
+void periph_wdt_enable() { IWDG_Enable(); IWDG_ReloadCounter(); }
+void periph_wdt_reset() { IWDG_ReloadCounter(); }

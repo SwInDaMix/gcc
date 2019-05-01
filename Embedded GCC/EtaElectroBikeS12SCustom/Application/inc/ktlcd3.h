@@ -17,19 +17,20 @@ typedef enum {
 } eKTLCD3_Battery;
 
 typedef enum {
-    KTLCD_Error_None = 0x0,
-    KTLCD_Error_01_Throttle = 0x22,
-    KTLCD_Error_02 = 0x23,
-    KTLCD_Error_03_Hall = 0x24,
-    KTLCD_Error_04_Torque = 0x26,
-    KTLCD_Error_05_Axis = 0x28,
-    KTLCD_Error_06_ShortCircuit = 0x21,
-    KTLCD_Error_91_BatteryUnderVoltage = 0x91
+    KTLCD3_Error_None = 0x0,
+    KTLCD3_Error_01_Throttle = 0x22,
+    KTLCD3_Error_02_Brake = 0x23,
+    KTLCD3_Error_03_Hall = 0x24,
+    KTLCD3_Error_04_Torque = 0x26,
+    KTLCD3_Error_05_Axis = 0x28,
+    KTLCD3_Error_06_ShortCircuit = 0x21,
+    KTLCD3_Error_91_BatteryUnderVoltage = 0x91
 } eKTLCD3_Error;
 
 typedef enum {
+    KTLCD3_MovingStatus_None = 0,
     KTLCD3_MovingStatus_Throttling = (1 << 1),
-    KTLCD3_MovingStatus_Cruise = (1 << 3),
+    KTLCD3_MovingStatus_CruiseControl = (1 << 3),
     KTLCD3_MovingStatus_Assist = (1 << 4),
     KTLCD3_MovingStatus_Braking = (1 << 5)
 } eKTLCD3_MovingStatus;
@@ -58,16 +59,16 @@ typedef enum {
     KTLCD3_AssistLevel3 = 3,
     KTLCD3_AssistLevel4 = 4,
     KTLCD3_AssistLevel5 = 5,
-    KTLCD3_AssistLevelWalk = 5,
+    KTLCD3_AssistLevelWalk = 6,
 } eKTLCD3_AssistLevel;
 
 typedef enum {
-    KTLCD3_MotorPhase0 = 0,
-    KTLCD3_MotorPhase60 = 1,
-    KTLCD3_MotorPhase120 = 2,
-    KTLCD3_MotorPhase180 = 3,
-    KTLCD3_MotorPhase240 = 4,
-    KTLCD3_MotorPhase300 = 5
+    KTLCD3_MotorPhase0,
+    KTLCD3_MotorPhase60,
+    KTLCD3_MotorPhase120,
+    KTLCD3_MotorPhase180,
+    KTLCD3_MotorPhase240,
+    KTLCD3_MotorPhase300
 } eKTLCD3_MotorPhase;
 
 typedef enum {
@@ -137,6 +138,7 @@ typedef enum {
     KTLCD3_Masks_MaxSpeed2 = (1 << KTLCD3_Shifts_MaxSpeed2),
     KTLCD3_Masks_WheelSize1 = (7 << KTLCD3_Shifts_WheelSize1),
     KTLCD3_Masks_WheelSize2 = (3 << KTLCD3_Shifts_WheelSize2),
+    KTLCD3_Masks_CruiseControl = (1 << 4),
     KTLCD3_Masks_p2 = (7 << KTLCD3_Shifts_p2),
     KTLCD3_Masks_p3 = (1 << KTLCD3_Shifts_p3),
     KTLCD3_Masks_p4 = (1 << KTLCD3_Shifts_p4),
@@ -171,19 +173,22 @@ typedef struct {
     uint8_t crc;
     uint8_t c1_c2;
     uint8_t c5_c14;
-    uint8_t c4;
+    uint8_t c4_cruise;
     uint8_t c12;
     uint8_t c13;
     uint8_t _mark50;
     uint8_t _mark14;
 } sKTLCD3_From;
 
+bool ktlcd3_was_updated();
+bool ktlcd3_was_ever_updated();
 uint8_t ktlcd3_get_power_monitoring_settings();
 bool ktlcd3_get_is_headlight_on();
 eKTLCD3_AssistLevel ktlcd3_get_assist_level();
-uint8_t ktlcd3_get_motor_characteristic();
+uint8_t ktlcd3_get_assist_level_duty_cycle(eKTLCD3_AssistLevel assist_level);
+uint8_t ktlcd3_get_motor_poluses();
 eKTLCD3_WheelSize ktlcd3_get_wheel_size();
-float ktlcd3_get_wheel_size_circumference();
+float ktlcd3_get_wheel_size_circumference(eKTLCD3_WheelSize wheel_size);
 uint8_t ktlcd3_get_max_speed();
 uint8_t ktlcd3_get_wheel_speed_pulses_per_revolution();
 bool ktlcd3_get_ignore_pas_gear_ratio();
@@ -191,14 +196,15 @@ bool ktlcd3_get_throttle_when_moving();
 uint8_t ktlcd3_get_throttle_startup_settings();
 eKTLCD3_MotorPhase ktlcd3_get_motor_phase();
 uint8_t ktlcd3_get_handlebar_function();
+bool ktlcd3_get_cruise_control();
 eKTLCD3_MaxCurrent ktlcd3_get_max_current();
-uint8_t ktlcd3_get_max_current_scale();
+uint8_t ktlcd3_get_max_current_scale(eKTLCD3_MaxCurrent max_current);
 eKTLCD3_MinVoltage ktlcd3_get_min_voltage();
-int8_t ktlcd3_get_min_voltage_correct();
+int8_t ktlcd3_get_min_voltage_correct(eKTLCD3_MinVoltage min_voltage);
 eKTLCD3_RegenStrength ktlcd3_get_regen_strength();
 eKTLCD3_PowerAssistSens ktlcd3_get_power_assist_sens();
 
-bool ktlcd3_receivebyte(uint8_t byte);
+bool ktlcd3_eat_byte(uint8_t byte);
 
 /**
  * @brief Update infromation on KT-LCD display according to the specified arguments.
