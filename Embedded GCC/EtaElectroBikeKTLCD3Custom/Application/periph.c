@@ -20,6 +20,8 @@ static periph_uart_on_received_callback_t s_periph_uart_on_received_callback = 0
 static uint16_t s_periph_adc_counter = 0;
 static uint16_t s_periph_adc_battery_voltage;
 
+static volatile uint32_t s_periph_halfseconds;
+
 void periph_init() {
     uint16_t _timer_start;
 
@@ -30,7 +32,6 @@ void periph_init() {
     _gpio_init(BUTTON_UP);
     _gpio_init(BUTTON_ONOFF);
     _gpio_init(BUTTON_DOWN);
-    _gpio_init(ENABLE_BACKLIGHT);
     _gpio_init(ONOFF_POWER);
     _gpio_init(POWER_UP);
     _gpio_init(HT1622_CS);
@@ -48,8 +49,8 @@ void periph_init() {
 
     // Timer1 is used to create a PWM duty-cyle signal to control LCD backlight
     TIM1_DeInit();
-    TIM1_TimeBaseInit(4200, TIM1_COUNTERMODE_DOWN, 20, 0);
-    TIM1_OC4Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, 10, TIM1_OCPOLARITY_HIGH, TIM1_OCIDLESTATE_RESET);
+    TIM1_TimeBaseInit(256, TIM1_COUNTERMODE_DOWN, 255, 0);
+    TIM1_OC4Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, 255, TIM1_OCPOLARITY_LOW, TIM1_OCIDLESTATE_RESET);
     TIM1_ARRPreloadConfig(ENABLE);
     TIM1_Cmd(ENABLE);
     TIM1_CtrlPWMOutputs(ENABLE);
@@ -59,8 +60,9 @@ void periph_init() {
     TIM2_TimeBaseInit(TIM2_PRESCALER_8192, 0xFFFF);
     TIM2_Cmd(ENABLE);
 
+    // Half seconds timer
     TIM3_DeInit();
-    TIM3_TimeBaseInit(TIM3_PRESCALER_16, 1000);
+    TIM3_TimeBaseInit(TIM3_PRESCALER_8, 1000);
     TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
     TIM3_Cmd(ENABLE);
 
@@ -96,9 +98,20 @@ void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER) {
 uint16_t periph_get_adc_counter() { return s_periph_adc_counter; }
 uint16_t periph_get_adc_battery_voltage() { return s_periph_adc_battery_voltage; }
 
-void periph_set_enable_backlight(bool enable_backlight) { _gpio_write(ENABLE_BACKLIGHT, enable_backlight); }
+ePeriphButton periph_get_buttons() {
+    ePeriphButton _res = (ePeriphButton)0;
+
+    if(_gpio_read(BUTTON_UP)) _res |= PeriphButton_Up;
+    if(_gpio_read(BUTTON_ONOFF)) _res |= PeriphButton_OnOff;
+    if(_gpio_read(BUTTON_DOWN)) _res |= PeriphButton_Down;
+
+    return _res;
+}
+
 void periph_set_onoff_power(bool onoff_power) { _gpio_write(ONOFF_POWER, onoff_power); }
 void periph_set_power_up(bool power_up) { _gpio_write(POWER_UP, power_up); }
+
+void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle) { TIM1_SetCompare4(UINT8_MAX - duty_cycle); }
 
 void periph_set_ht1622_vdd(bool vdd) { _gpio_write(HT1622_VDD, vdd); }
 void periph_set_ht1622_cs(bool cs) { _gpio_write(HT1622_CS, cs); }
@@ -122,10 +135,15 @@ void UART2_IRQHandler() __interrupt(UART2_IRQHANDLER) {
 }
 
 void TIM3_UPD_OVF_BRK_IRQHandler() __interrupt(TIM3_UPD_OVF_BRK_IRQHANDLER) {
-    if(s_periph_lcd_timer_overflow_callback) s_periph_lcd_timer_overflow_callback();
+    static uint16_t _s_hs = 0;
+
+    if(s_periph_lcd_timer_overflow_callback && !(s_periph_halfseconds & 1)) s_periph_lcd_timer_overflow_callback();
+    _s_hs++;
+    if(_s_hs >= 1000) { _s_hs = 0; s_periph_halfseconds++; }
     TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
 }
 
+uint32_t periph_get_halfseconds() { uint32_t _halfseconds; disableInterrupts(); _halfseconds = s_periph_halfseconds; enableInterrupts(); return _halfseconds; }
 uint16_t periph_get_timer() { return TIM2_GetCounter(); }
 
 void putchar(unsigned char character) {

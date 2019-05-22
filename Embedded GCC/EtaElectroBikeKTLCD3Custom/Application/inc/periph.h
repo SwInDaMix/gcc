@@ -40,10 +40,6 @@
 #define BUTTON_DOWN__PIN                    GPIO_PIN_2
 #define BUTTON_DOWN__MODE                   GPIO_MODE_IN_PU_NO_IT
 
-#define ENABLE_BACKLIGHT__PORT              GPIOC
-#define ENABLE_BACKLIGHT__PIN               GPIO_PIN_4
-#define ENABLE_BACKLIGHT__MODE              GPIO_MODE_OUT_PP_LOW_FAST
-
 #define ONOFF_POWER__PORT                   GPIOA
 #define ONOFF_POWER__PIN                    GPIO_PIN_2
 #define ONOFF_POWER__MODE                   GPIO_MODE_OUT_PP_LOW_FAST
@@ -81,6 +77,12 @@
 
 #define PERIPH_ADC_STABILIZATION_PERIOD_MS 500U
 
+typedef enum {
+    PeriphButton_Up,
+    PeriphButton_OnOff,
+    PeriphButton_Down
+} ePeriphButton;
+
 typedef void (*periph_lcd_timer_overflow_callback_t)();
 typedef void (*periph_uart_on_received_callback_t)(uint8_t byte);
 
@@ -90,14 +92,18 @@ void TIM3_UPD_OVF_BRK_IRQHandler() __interrupt(TIM3_UPD_OVF_BRK_IRQHANDLER);
 
 void periph_init();
 
+uint32_t periph_get_halfseconds();
 uint16_t periph_get_timer();
 
 uint16_t periph_get_adc_counter();
 uint16_t periph_get_adc_battery_voltage();
 
-void periph_set_enable_backlight(bool enable_backlight);
+ePeriphButton periph_get_buttons();
+
 void periph_set_onoff_power(bool onoff_power);
 void periph_set_power_up(bool power_up);
+
+void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle);
 
 void periph_set_ht1622_vdd(bool vdd);
 void periph_set_ht1622_cs(bool cs);
