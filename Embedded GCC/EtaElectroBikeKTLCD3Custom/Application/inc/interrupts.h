@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.h"
+
 #define EXTI_PORTA_IRQHANDLER 3
 #define EXTI_PORTC_IRQHANDLER 5
 #define EXTI_PORTD_IRQHANDLER 6

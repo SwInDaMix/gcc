@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "config.h"
 #include "interrupts.h"
-#include "stm8s_gpio.h"
 
 /*
  * PD0          | HT1622 /CS
@@ -73,17 +74,19 @@
 #define BATTERY_VOLTAGE__MODE               GPIO_MODE_IN_FL_NO_IT
 #define BATTERY_VOLTAGE__CH                 ADC1_CHANNEL_8
 
-#define TIMER_TP_MS(msecs) ((uint16_t)((FCPU / 1000) * (uint64_t)msecs / 8192L))
+#define TIMER_MS2TT(msecs) (msecs)
 
 #define PERIPH_ADC_STABILIZATION_PERIOD_MS 500U
 
 typedef enum {
-    PeriphButton_Up,
-    PeriphButton_OnOff,
-    PeriphButton_Down
+    PeriphButton__None = 0,
+    PeriphButton_Up = (1 << 0),
+    PeriphButton_OnOff = (1 << 1),
+    PeriphButton_Down = (1 << 2),
+    PeriphButton__UpDown = PeriphButton_Up | PeriphButton_Down,
+    PeriphButton__All = PeriphButton_Up | PeriphButton_OnOff | PeriphButton_Down
 } ePeriphButton;
 
-typedef void (*periph_lcd_timer_overflow_callback_t)();
 typedef void (*periph_uart_on_received_callback_t)(uint8_t byte);
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER);
@@ -92,11 +95,16 @@ void TIM3_UPD_OVF_BRK_IRQHandler() __interrupt(TIM3_UPD_OVF_BRK_IRQHANDLER);
 
 void periph_init();
 
-uint32_t periph_get_halfseconds();
+void periph_atom_start();
+void periph_atom_end();
+
 uint16_t periph_get_timer();
+uint16_t periph_get_mseconds();
+uint32_t periph_get_seconds();
+void periph_reset_seconds();
 
 uint16_t periph_get_adc_counter();
-uint16_t periph_get_adc_battery_voltage();
+uint16_t periph_get_adc__voltage();
 
 ePeriphButton periph_get_buttons();
 
@@ -114,5 +122,10 @@ void periph_set_ht1622_data(bool data);
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback);
 void periph_uart_putbyte(uint8_t byte);
 
+void periph_eeprom_read(void *dst, uint16_t offset, size_t size);
+void periph_eeprom_write(void const *src, uint16_t offset, size_t size);
+
 void periph_wdt_enable();
 void periph_wdt_reset();
+
+void periph_shutdown();

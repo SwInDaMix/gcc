@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "config.h"
 
 typedef enum {
     LCDBit_Gear_Cruise,
@@ -100,12 +101,13 @@ typedef enum {
 } eLCDDigit;
 
 typedef enum {
-    LCDBatterySoC_Body = 0x01,
-    LCDBatterySoC_SoC_1 = 0x08,
-    LCDBatterySoC_SoC_2 = 0x10,
-    LCDBatterySoC_SoC_3 = 0x04,
-    LCDBatterySoC_SoC_4 = 0x02,
-    LCDBatterySoC__All = LCDBatterySoC_Body | LCDBatterySoC_SoC_1 | LCDBatterySoC_SoC_2 | LCDBatterySoC_SoC_3 | LCDBatterySoC_SoC_4,
+    LCDBatterySocBit__None = 0,
+    LCDBatterySocBit_Body = 0x01,
+    LCDBatterySocBit_SoC_1 = 0x08,
+    LCDBatterySocBit_SoC_2 = 0x10,
+    LCDBatterySocBit_SoC_3 = 0x04,
+    LCDBatterySocBit_SoC_4 = 0x02,
+    LCDBatterySocBit__All = LCDBatterySocBit_Body | LCDBatterySocBit_SoC_1 | LCDBatterySocBit_SoC_2 | LCDBatterySocBit_SoC_3 | LCDBatterySocBit_SoC_4,
 } eLCDBatterySocBits;
 
 void lcd_flush();

@@ -1,4 +1,5 @@
 #include <string.h>
+
 #include "lcd.h"
 #include "ht1622.h"
 #include "utils.h"
@@ -6,7 +7,7 @@
 #define LCD_BATTERYSOC_OFFSET 23
 
 typedef enum {
-    LCDBitInternal_Gear_Cruise = 1,
+    LCDBitInternal_Gear_Cruise = 0,
     LCDBitInternal_Gear_Assist = 15,
     LCDBitInternal_ODOVolts_Vol = 23,
     LCDBitInternal_ODOVolts_ODO = 31,
@@ -198,7 +199,7 @@ static eLCDDigitInternal lcd_twist_digit(eLCDDigitInternal digit) {
     uint8_t res = 0;
     uint8_t cnt = 7;
 
-    while ((cnt--)) {
+    while((cnt--)) {
         res <<= 1;
         if(orig & 1) res |= 1;
         orig >>= 1;
@@ -234,5 +235,5 @@ void lcd_set_digit(eLCDDigitOffset digit_offset, eLCDDigit digit) {
 void lcd_set_battery_soc_bits(eLCDBatterySocBits battery_soc_bits) {
     uint8_t *ptr = &s_lcd_shadow_frame.buffer[LCD_BATTERYSOC_OFFSET];
 
-    *ptr = *ptr & ~LCDBatterySoC__All | battery_soc_bits;
+    *ptr = *ptr & ~LCDBatterySocBit__All | battery_soc_bits;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "config.h"
 
 #define HT1622_SCREEN_BUFFER_SIZE 32
 

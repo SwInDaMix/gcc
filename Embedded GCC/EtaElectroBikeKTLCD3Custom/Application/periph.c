@@ -1,4 +1,8 @@
 #include <stddef.h>
+#include <string.h>
+#include <stm8s_flash.h>
+#include "stm8s_gpio.h"
+
 #include "config.h"
 #include "periph.h"
 #include "main.h"
@@ -14,13 +18,14 @@
 #define _periph_read_adc_channel(name) (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)(name##__CH << 1)))
 #define _periph_read_adc_channel_10bits(name) ((((uint16_t)_periph_read_adc_channel(name)) << 2) | (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)((name##__CH << 1) + 1))))
 
-static periph_lcd_timer_overflow_callback_t s_periph_lcd_timer_overflow_callback = 0;
 static periph_uart_on_received_callback_t s_periph_uart_on_received_callback = 0;
 
 static uint16_t s_periph_adc_counter = 0;
-static uint16_t s_periph_adc_battery_voltage;
+static uint16_t s_periph_adc__voltage;
 
-static volatile uint32_t s_periph_halfseconds;
+static volatile uint16_t s_periph_timer;
+static volatile uint16_t s_periph_mseconds;
+static volatile uint32_t s_periph_seconds;
 
 void periph_init() {
     uint16_t _timer_start;
@@ -43,7 +48,7 @@ void periph_init() {
     // Init GPIO to be used as ADC inputs
     _gpio_init(BATTERY_VOLTAGE);
     ADC1_DeInit();
-    ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, ADC1_CHANNEL_9, ADC1_PRESSEL_FCPU_D18, ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_LEFT, ADC1_SCHMITTTRIG_ALL, DISABLE);
+    ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, ADC1_CHANNEL_9, ADC1_PRESSEL_FCPU_D18, ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_LEFT, ADC1_SCHMITTTRIG_CHANNEL9, DISABLE);
     ADC1_ITConfig(ADC1_IT_EOCIE, ENABLE);
     ADC1_Cmd(ENABLE);
 
@@ -55,14 +60,9 @@ void periph_init() {
     TIM1_Cmd(ENABLE);
     TIM1_CtrlPWMOutputs(ENABLE);
 
-    // Period measure timer (ticks every 0,512 msec, 1953,125 per sec)
-    TIM2_DeInit();
-    TIM2_TimeBaseInit(TIM2_PRESCALER_8192, 0xFFFF);
-    TIM2_Cmd(ENABLE);
-
     // Half seconds timer
     TIM3_DeInit();
-    TIM3_TimeBaseInit(TIM3_PRESCALER_8, 1000);
+    TIM3_TimeBaseInit(TIM3_PRESCALER_16, 1000);
     TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
     TIM3_Cmd(ENABLE);
 
@@ -74,36 +74,39 @@ void periph_init() {
 
     // Configure watchdog
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-    IWDG_SetPrescaler(IWDG_Prescaler_4);
-    IWDG_SetReload(1);
+    IWDG_SetPrescaler(IWDG_Prescaler_256);
+    IWDG_SetReload(0);
     IWDG_ReloadCounter();
 
     enableInterrupts();
     _timer_start = 0xFFF;
-    while (_timer_start--);
+    while(_timer_start--);
     DBG("Periph system initialization done!\n");
 }
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER) {
-    static uint16_t _s_periph_adc_battery_voltage_acc;
+    static uint16_t _s_periph_adc__voltage_acc;
 
     ADC1->CSR = ADC1_IT_EOCIE | (uint8_t)(ADC1_CHANNEL_9);
 
-    _s_periph_adc_battery_voltage_acc = _s_periph_adc_battery_voltage_acc - s_periph_adc_battery_voltage + _periph_read_adc_channel_10bits(BATTERY_VOLTAGE);
-    s_periph_adc_battery_voltage = _s_periph_adc_battery_voltage_acc >> 2;
+    _s_periph_adc__voltage_acc = _s_periph_adc__voltage_acc - s_periph_adc__voltage + _periph_read_adc_channel_10bits(BATTERY_VOLTAGE);
+    s_periph_adc__voltage = _s_periph_adc__voltage_acc >> 2;
 
     s_periph_adc_counter++;
 }
 
+void periph_atom_start() { disableInterrupts(); }
+void periph_atom_end() { enableInterrupts(); }
+
 uint16_t periph_get_adc_counter() { return s_periph_adc_counter; }
-uint16_t periph_get_adc_battery_voltage() { return s_periph_adc_battery_voltage; }
+uint16_t periph_get_adc__voltage() { return s_periph_adc__voltage; }
 
 ePeriphButton periph_get_buttons() {
-    ePeriphButton _res = (ePeriphButton)0;
+    ePeriphButton _res = PeriphButton__None;
 
-    if(_gpio_read(BUTTON_UP)) _res |= PeriphButton_Up;
+    if(!_gpio_read(BUTTON_UP)) _res |= PeriphButton_Up;
     if(_gpio_read(BUTTON_ONOFF)) _res |= PeriphButton_OnOff;
-    if(_gpio_read(BUTTON_DOWN)) _res |= PeriphButton_Down;
+    if(!_gpio_read(BUTTON_DOWN)) _res |= PeriphButton_Down;
 
     return _res;
 }
@@ -121,37 +124,59 @@ void periph_set_ht1622_data(bool data) { _gpio_write(HT1622_DATA, data); }
 
 void UART2_IRQHandler() __interrupt(UART2_IRQHANDLER) {
     uint8_t _byte;
-    if (UART2_GetFlagStatus(UART2_FLAG_RXNE) == SET) {
+    if(UART2_GetFlagStatus(UART2_FLAG_RXNE) == SET) {
         _byte = UART2_ReceiveData8();
-        if (s_periph_uart_on_received_callback) s_periph_uart_on_received_callback(_byte);
+        if(s_periph_uart_on_received_callback) s_periph_uart_on_received_callback(_byte);
     } else {
-        if (UART2_GetFlagStatus(UART2_FLAG_OR_LHE) == SET) {
+        if(UART2_GetFlagStatus(UART2_FLAG_OR_LHE) == SET) {
             UART2_ReceiveData8();  // -> clear!
         }
-        if (UART2_GetFlagStatus(UART2_FLAG_FE) == SET) {
+        if(UART2_GetFlagStatus(UART2_FLAG_FE) == SET) {
             UART2_ReceiveData8();  // -> clear!
         }
     }
 }
 
 void TIM3_UPD_OVF_BRK_IRQHandler() __interrupt(TIM3_UPD_OVF_BRK_IRQHANDLER) {
-    static uint16_t _s_hs = 0;
-
-    if(s_periph_lcd_timer_overflow_callback && !(s_periph_halfseconds & 1)) s_periph_lcd_timer_overflow_callback();
-    _s_hs++;
-    if(_s_hs >= 1000) { _s_hs = 0; s_periph_halfseconds++; }
+    s_periph_timer++;
+    s_periph_mseconds++;
+    if(s_periph_mseconds >= 1000) { s_periph_mseconds = 0; s_periph_seconds++; }
     TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
 }
 
-uint32_t periph_get_halfseconds() { uint32_t _halfseconds; disableInterrupts(); _halfseconds = s_periph_halfseconds; enableInterrupts(); return _halfseconds; }
-uint16_t periph_get_timer() { return TIM2_GetCounter(); }
+uint16_t periph_get_timer() { uint16_t _timer; disableInterrupts(); _timer = s_periph_timer; enableInterrupts(); return _timer; }
+uint16_t periph_get_mseconds() { uint16_t _mseconds; disableInterrupts(); _mseconds = s_periph_mseconds; enableInterrupts(); return _mseconds; }
+uint32_t periph_get_seconds() { uint32_t _seconds; disableInterrupts(); _seconds = s_periph_seconds; enableInterrupts(); return _seconds; }
+void periph_reset_seconds() { disableInterrupts(); s_periph_seconds = 0; s_periph_mseconds = 0; enableInterrupts(); }
 
 void putchar(unsigned char character) {
-    while (UART2_GetFlagStatus(UART2_FLAG_TXE) == RESET);
+    while(UART2_GetFlagStatus(UART2_FLAG_TXE) == RESET);
     UART2_SendData8(character);
 }
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback) { s_periph_uart_on_received_callback = callback; }
 void periph_uart_putbyte(uint8_t byte) { putchar(byte); }
 
+void periph_eeprom_read(void *dst, uint16_t offset, size_t size) {
+    memcpy(dst, (void *)(FLASH_DATA_START_PHYSICAL_ADDRESS + offset), size);
+}
+void periph_eeprom_write(void const *src, uint16_t offset, size_t size){
+    uint8_t _i;
+    uint32_t *_src = (uint32_t *)src;
+    uint32_t *_dst = (uint32_t *)(FLASH_DATA_START_PHYSICAL_ADDRESS + offset);
+
+    FLASH_SetProgrammingTime(FLASH_PROGRAMTIME_STANDARD);
+    FLASH_Unlock(FLASH_MEMTYPE_DATA);
+    while(!FLASH_GetFlagStatus(FLASH_FLAG_DUL));
+    for (_i = 0; _i < ((size + 3) >> 2); _i++) {
+        periph_wdt_reset();
+        FLASH_ProgramWord((uint32_t)(_dst++), *_src++);
+        while(!FLASH_GetFlagStatus(FLASH_FLAG_EOP));
+    }
+    FLASH_Lock(FLASH_MEMTYPE_DATA);
+
+}
+
 void periph_wdt_enable() { IWDG_Enable(); IWDG_ReloadCounter(); }
 void periph_wdt_reset() { IWDG_ReloadCounter(); }
+
+void periph_shutdown() { periph_set_onoff_power(false); while(true); }

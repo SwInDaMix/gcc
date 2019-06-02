@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define DEBUG
+#define USE_FULL_ASSERT
 
 #define FCPU 16000000ULL
 
@@ -16,6 +17,6 @@
 #define DBGF(fmt, ...)
 #endif
 
-#ifdef __CLION_IDE__
-#define __interrupt(h)
+#ifndef __SDCC
+#define __interrupt(h) //
 #endif

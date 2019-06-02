@@ -31,7 +31,7 @@ typedef enum {
 
 static void ht1622_send_bits(uint16_t data, eHT1622_Bits bits) {
     uint16_t _mask = 1 << (bits - 1);
-    while ((bits--)) {
+    while((bits--)) {
         periph_set_ht1622_data(data & _mask);
         //delay();
         periph_set_ht1622_write(false);
@@ -73,7 +73,7 @@ void ht1622_send_frame(sHT1622Frame const *buffer) {
     ht1622_send_bits(HT1622_ID_DATA, HT1622_BITS_ID);
     ht1622_send_bits(0, HT1622_BITS_ADDRESS);
 
-    while ((cnt--)) {
+    while((cnt--)) {
         ht1622_send_bits(*buffer_ptr++, HT1622_BITS_DATA);
     }
 
