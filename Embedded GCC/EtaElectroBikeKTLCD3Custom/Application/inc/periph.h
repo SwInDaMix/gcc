@@ -88,9 +88,11 @@ typedef enum {
 } ePeriphButton;
 
 typedef void (*periph_uart_on_received_callback_t)(uint8_t byte);
+typedef uint8_t (*periph_uart_on_transmit_callback_t)();
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER);
-void UART2_IRQHandler() __interrupt(UART2_IRQHANDLER);
+void UART2_TXIRQHandler() __interrupt(UART2_TXIRQHANDLER);
+void UART2_RXIRQHandler() __interrupt(UART2_RXIRQHANDLER);
 void TIM3_UPD_OVF_BRK_IRQHandler() __interrupt(TIM3_UPD_OVF_BRK_IRQHANDLER);
 
 void periph_init();
@@ -103,8 +105,7 @@ uint16_t periph_get_mseconds();
 uint32_t periph_get_seconds();
 void periph_reset_seconds();
 
-uint16_t periph_get_adc_counter();
-uint16_t periph_get_adc__voltage();
+uint16_t periph_get_adc_voltage();
 
 ePeriphButton periph_get_buttons();
 
@@ -120,6 +121,7 @@ void periph_set_ht1622_read(bool read);
 void periph_set_ht1622_data(bool data);
 
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback);
+void periph_uart_set_on_transmit_callback(periph_uart_on_transmit_callback_t callback);
 void periph_uart_putbyte(uint8_t byte);
 
 void periph_eeprom_read(void *dst, uint16_t offset, size_t size);

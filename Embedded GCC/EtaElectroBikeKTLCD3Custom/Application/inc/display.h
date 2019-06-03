@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "config.h"
 #include "lcd.h"
+#include "network.h"
 
 typedef enum {
     DispState_AnimateWithDigits,
@@ -11,28 +12,9 @@ typedef enum {
 } eDispState;
 
 typedef enum {
-    DispBatterySoc_None,
-    DispBatterySoc_Flashing,
-    DispBatterySoc_Empty,
-    DispBatterySoc_1Bar,
-    DispBatterySoc_2Bars,
-    DispBatterySoc_3Bars,
-    DispBatterySoc_Full,
-    DispBatterySoc_Charging0,
-    DispBatterySoc_Charging1,
-    DispBatterySoc_Charging2,
-    DispBatterySoc_Charging3,
-    DispBatterySoc_Recuperating,
-    DispBatterySoc__Max
-} eDispBatterySoC;
-
-typedef enum {
     DispMainState_Drive,
     DispMainState_Statistic1,
     DispMainState_Statistic2,
-#ifdef DEBUG
-    DispMainState_Test,
-#endif
     DispMainState__Max
 } eDispMainState;
 
@@ -45,7 +27,7 @@ typedef enum {
 typedef enum {
     DispMainFlags_None,
     DispMainFlags_Light = (1 << 0),
-    DispMainFlags_Brake = (1 << 1),
+    DispMainFlags_Braking = (1 << 1),
     DispMainFlags_Walking = (1 << 2),
     DispMainFlags_Assist = (1 << 3),
     DispMainFlags_Cruise = (1 << 4),
@@ -67,7 +49,7 @@ typedef struct {
     eDispMainMeasureUnit measure_unit;
     eDispMainFlags flags;
     eDispMainFlashing flashing;
-    eDispBatterySoC battery_soc;
+    eNetworkBatterySoC battery_soc;
     uint8_t gear;                   // 0 is parking mode;
     struct {
         uint16_t current;           // in 0.002 Kmh/mph, max 49974
@@ -87,17 +69,11 @@ typedef struct {
             uint32_t odometer;      // 0.01 Km/Mil (9999.99 max)
         } distance;
         struct {
-            uint16_t session;       // in seconds (59999 max - 999:59)
-            uint16_t total;         // in seconds (59999 max - 999:59)
+            uint32_t session;       // in seconds (3599999 max - 999h 59m 59s)
+            uint32_t ride;          // in seconds (3599999 max - 999h 59m 59s)
+            uint32_t total_ride;    // in seconds (3599999 max - 999h 59m 59s)
         } time;
     } stat;
-#ifdef DEBUG
-    struct {
-        eDispBatterySoC battery_soc;
-        eLCDDigit digit;
-        eLCDBit bit;
-    } test;
-#endif
 } sDispScreenMain;
 
 

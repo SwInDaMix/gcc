@@ -13,10 +13,8 @@
 //#define HUD_TEMP_BCOEFFICIENT 3095.0f
 
 typedef struct {
-    uint16_t battery_volts;
-    uint16_t system_temp;
+    uint16_t voltage;               // in 0.002 V
+    uint16_t system_temp;           // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and flashing)
 } sSensors;
-
-void sensors_init();
 
 sSensors const *sensors_get_current();

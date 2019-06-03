@@ -6,6 +6,12 @@
 #define    MIN(a,b)    (((a)<(b))?(a):(b))
 #define    MAX(a,b)    (((a)>(b))?(a):(b))
 
+#define FLAG_IS_SET(flags, bit) (flags & (bit))
+#define FLAG_SET(flags, bit) flags |= (bit)
+#define FLAG_RESET(flags, bit) flags &= ~(bit)
+#define FLAG_TOGGLE(flags, bit) flags ^= (bit)
+#define FLAG_PUT(flags, bit, value) if(value) { flags |= (bit); } else { flags &= ~(bit); }
+
 #define swap16(value) ((uint16_t)(((value) & 0xFF) << 8) | (uint16_t)(((value) >> 8) & 0xFF))
 
 uint8_t crc8_ccitt_update(uint8_t crc, uint8_t byte);

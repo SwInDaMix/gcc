@@ -31,7 +31,7 @@ typedef enum {
     LCDBit_TravelTime_TM,
     LCDBit_TravelTime_TTM,
     LCDBit_Light,
-    LCDBit_Brake,
+    LCDBit_Braking,
     LCDBit_TravelTime_Colon,
     LCDBit__Max
 } eLCDBit;

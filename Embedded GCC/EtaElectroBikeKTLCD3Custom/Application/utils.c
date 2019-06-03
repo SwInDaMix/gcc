@@ -6,7 +6,7 @@ uint8_t crc8_ccitt_update(uint8_t crc, uint8_t byte) {
 
     data = crc ^ byte;
     for (i = 0; i < 8; i++) {
-        if((data & 0x80) != 0) {
+        if((data & 0x80)) {
             data <<= 1;
             data ^= 0x07;
         } else data <<= 1;
@@ -51,9 +51,9 @@ uint16_t map16(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, u
     return (uint16_t)((uint16_t)((uint32_t)((uint16_t)(x - in_min) * _diff_out) / _diff_in) + out_min);
 }
 
-int16_t conv_tempC2F(int16_t temp_c) { return (temp_c * 9 / 5) + 32; }
-uint32_t conv_distanceKm2Mil(uint32_t distance_km) { return (distance_km * 636) >> 10; }
-uint32_t conv_distanceMil2Km(uint32_t distance_mil) { return (distance_mil << 10) / 636; }
+int16_t conv_tempC2F(int16_t temp_c) { return (temp_c * 9U / 5U) + 32U; }
+uint32_t conv_distanceKm2Mil(uint32_t distance_km) { return (distance_km * 636U) >> 10; }
+uint32_t conv_distanceMil2Km(uint32_t distance_mil) { return (distance_mil << 10) / 636U; }
 
-uint16_t conv_mh2erps(uint32_t mh, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((mh * 10 * motor_pole_pairs) / 36 / wheel_circumference);  }
-uint32_t conv_erps2mh(uint16_t erps, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((((uint32_t)erps) * wheel_circumference * 36) / motor_pole_pairs / 10); }
+uint16_t conv_mh2erps(uint32_t mh, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((mh * 10U * motor_pole_pairs) / 36U / wheel_circumference);  }
+uint32_t conv_erps2mh(uint16_t erps, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((((uint32_t)erps) * wheel_circumference * 36U) / motor_pole_pairs / 10U); }

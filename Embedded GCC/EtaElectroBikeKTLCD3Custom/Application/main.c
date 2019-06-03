@@ -29,9 +29,15 @@ int main(void) {
 
     periph_set_onoff_power(true); // TODO: remove
     while(true) {
+//        uint16_t _tim_s, _tim_e;
+//        _tim_s = periph_get_timer();
+
         periph_wdt_reset();
 
         network_cycle();
         logic_cycle(sensors_get_current(), settings_get_current());
+
+//        _tim_e = periph_get_timer();
+//        DBGF("%u\n", (_tim_e - _tim_s));
     }
 }

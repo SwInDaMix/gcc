@@ -5,14 +5,20 @@
 #include "config.h"
 #include "display.h"
 
+typedef enum {
+    SettingsFlag_None,
+    SettingsFlag_AlwaysBacklight
+} eSettingsFlags;
+
 typedef struct {
+    eSettingsFlags flags;
     eDispMainMeasureUnit measure_unit;
-    uint32_t odometer;              // 0.01 Km/Mil (9999.99 max)
-    uint16_t ttm;
-    uint16_t wheel_circumference;   // wheel circumference in millimeters
-    uint8_t motor_pole_pairs;       // number of motor poles
-    uint16_t max_kmh;               // in 0.1 Kmh, max 999
-    uint16_t max_mph;               // in 0.1 mph, max 999
+    uint32_t odometer;                  // 0.01 Km/Mil (9999.99 max)
+    uint16_t total_ride_time;
+    uint16_t wheel_circumference;       // wheel circumference in millimeters
+    uint8_t motor_pole_pairs;           // number of motor poles
+    uint16_t max_kmh;                   // in 0.1 Kmh, max 999
+    uint16_t max_mph;                   // in 0.1 mph, max 999
     uint8_t backlight_brightness;
 } sSettings;
 

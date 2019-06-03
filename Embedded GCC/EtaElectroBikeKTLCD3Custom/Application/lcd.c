@@ -33,7 +33,7 @@ typedef enum {
     LCDBitInternal_TravelTime_TM = 136,
     LCDBitInternal_TravelTime_TTM = 137,
     LCDBitInternal_Light = 189,
-    LCDBitInternal_Brake = 190,
+    LCDBitInternal_Braking = 190,
     LCDBitInternal_TravelTime_Colon = 191
 } eLCDBitInternal;
 
@@ -128,7 +128,7 @@ static eLCDBitInternal const s_lcd_bit_enums[LCDBit__Max] = {
     LCDBitInternal_TravelTime_TM,
     LCDBitInternal_TravelTime_TTM,
     LCDBitInternal_Light,
-    LCDBitInternal_Brake,
+    LCDBitInternal_Braking,
     LCDBitInternal_TravelTime_Colon,
 };
 static eLCDDigitOffsetInternal const s_lcd_digit_offset_enums[LCDDigitOffset__Max] = {

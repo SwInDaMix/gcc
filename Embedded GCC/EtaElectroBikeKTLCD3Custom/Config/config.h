@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #define DEBUG
-#define USE_FULL_ASSERT
 
 #define FCPU 16000000ULL
 

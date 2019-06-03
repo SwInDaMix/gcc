@@ -84,26 +84,19 @@ static eDispState disp_cycle_main() {
 
     _is_measure_flashing = s_screen_main.flashing == DispMainFlashing_MeasureUnitMetric || s_screen_main.flashing == DispMainFlashing_MeasureUnitImperic;
 
-#ifdef DEBUG
-    // process test screen
-    if(s_screen_main.state == DispMainState_Test) {
-        s_screen_main.battery_soc = s_screen_main.test.battery_soc;
-    }
-#endif
-
     // process battery SoC
     {
         uint8_t _level = 0;
         bool _is_rlevel = false;
 
-        if(s_screen_main.battery_soc == DispBatterySoc_Flashing) {
+        if(s_screen_main.battery_soc == NetworkBatterySoC_Flashing) {
             if(s_disp_animation_battery_soc3 >= 2) s_disp_animation_battery_soc3 = 0;
             if(s_disp_animation_battery_soc3 & 1) s_battery_soc_bits = LCDBatterySocBit_Body;
-        } else if(s_screen_main.battery_soc >= DispBatterySoc_Charging0 && s_screen_main.battery_soc <= DispBatterySoc_Charging3) {
+        } else if(s_screen_main.battery_soc >= NetworkBatterySoC_Charging0 && s_screen_main.battery_soc <= NetworkBatterySoC_Charging3) {
             s_battery_soc_bits |= LCDBatterySocBit_Body;
-            if(s_disp_animation_battery_soc3 >= (SOC_LEVEL_COUNT + 1)) s_disp_animation_battery_soc3 = s_screen_main.battery_soc - DispBatterySoc_Charging0;
+            if(s_disp_animation_battery_soc3 >= (SOC_LEVEL_COUNT + 1)) s_disp_animation_battery_soc3 = s_screen_main.battery_soc - NetworkBatterySoC_Charging0;
             _level = s_disp_animation_battery_soc3;
-        } else if(s_screen_main.battery_soc == DispBatterySoc_Recuperating) {
+        } else if(s_screen_main.battery_soc == NetworkBatterySoC_Recuperating) {
             s_battery_soc_bits |= LCDBatterySocBit_Body;
             if(s_disp_animation_battery_soc0 >= (SOC_LEVEL_COUNT * 4 + 1)) s_disp_animation_battery_soc0 = 0;
             _level = s_disp_animation_battery_soc0;
@@ -115,9 +108,9 @@ static eDispState disp_cycle_main() {
                 _is_rlevel = !_is_rlevel;
                 _level = (SOC_LEVEL_COUNT * 2) - _level;
             }
-        } else if(s_screen_main.battery_soc >= DispBatterySoc_Empty && s_screen_main.battery_soc <= DispBatterySoc_Full) {
+        } else if(s_screen_main.battery_soc >= NetworkBatterySoC_Empty && s_screen_main.battery_soc <= NetworkBatterySoC_Full) {
             s_battery_soc_bits |= LCDBatterySocBit_Body;
-            _level = s_screen_main.battery_soc - DispBatterySoc_Empty;
+            _level = s_screen_main.battery_soc - NetworkBatterySoC_Empty;
         }
 
         if(_is_rlevel) {
@@ -134,16 +127,7 @@ static eDispState disp_cycle_main() {
     }
 
     if(s_screen_main.flags & DispMainFlags_Light) { s_bits |= DISP_FLAG(LCDBit_Light); }
-    if(s_screen_main.flags & DispMainFlags_Brake) { s_bits |= DISP_FLAG(LCDBit_Brake); }
-
-#ifdef DEBUG
-    // process test screen
-    if(s_screen_main.state == DispMainState_Test) {
-        memset(s_digits, s_screen_main.test.digit, sizeof(s_digits));
-        s_bits |= DISP_FLAG(s_screen_main.test.bit);
-        return DispMainState_Test;
-    }
-#endif
+    if(s_screen_main.flags & DispMainFlags_Braking) { s_bits |= DISP_FLAG(LCDBit_Braking); }
 
     // process gear
     if(s_screen_main.flashing == DispMainFlashing_None) {
@@ -276,12 +260,14 @@ static eDispState disp_cycle_main() {
         {
             bool _is_ttm_flashing = s_screen_main.flashing == DispMainFlashing_TTM;
             if(_is_ttm_flashing || s_screen_main.flashing == DispMainFlashing_None) {
+                uint32_t _time_orig;
                 uint16_t _time;
                 bool _is_minutes;
-                if(!_is_ttm_flashing && s_screen_main.state == DispMainState_Drive) { _time = s_screen_main.stat.time.session; s_bits |= DISP_FLAG(LCDBit_TravelTime_TM); }
-                else { _time = s_screen_main.stat.time.total; s_bits |= DISP_FLAG(LCDBit_TravelTime_TTM); }
-                _is_minutes = _time >= 3600;
-                if(_is_minutes) _time /= 60;
+                if(!_is_ttm_flashing && s_screen_main.state == DispMainState_Statistic1) { _time_orig = s_screen_main.stat.time.session; }
+                else if(_is_ttm_flashing || s_screen_main.state == DispMainState_Statistic2) { _time_orig = s_screen_main.stat.time.total_ride; s_bits |= DISP_FLAG(LCDBit_TravelTime_TTM); }
+                else { _time_orig = s_screen_main.stat.time.ride; s_bits |= DISP_FLAG(LCDBit_TravelTime_TM); }
+                _is_minutes = _time_orig >= 3600;
+                _time = _is_minutes ? _time_orig / 60 : _time_orig;
                 if(_time < 60000) {
                     uint16_t _time_high = divu16(&_time, 60);
                     disp_fill_digits16(&_time_high, LCDDigitOffset_TravelTime_5, true, 2, 2);

@@ -1,8 +1,9 @@
 #include "sensors.h"
-#include "utils.h"
+#include "periph.h"
 
 static sSensors s_sensors;
 
-void sensors_init() { }
-
-sSensors const *sensors_get_current() { return &s_sensors; }
+sSensors const *sensors_get_current() {
+    s_sensors.voltage = periph_get_adc_voltage();
+    return &s_sensors;
+}
