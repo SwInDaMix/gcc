@@ -54,15 +54,14 @@ static uint8_t network_uart_on_transmit() {
     static uint8_t const *_s_payload_ptr;
     uint8_t _byte = 0;
 
-    if(_s_state == NetworkState_Pream1) {
-        _byte = NETWORK_PREAMBULA_B1;
-        if(s_network_tx_payload_controller_ready) {
-            memcpy(&s_network_tx_payload_controller, &s_network_tx_payload_controller_preload, sizeof(sNetworkPayload_Controller));
-            s_network_tx_payload_controller_crc = s_network_tx_payload_controller_crc_preload;
-            s_network_tx_payload_controller_ready = false;
-        }
-        _s_state = NetworkState_Pream2;
+    if(s_network_tx_payload_controller_ready) {
+        memcpy(&s_network_tx_payload_controller, &s_network_tx_payload_controller_preload, sizeof(sNetworkPayload_Controller));
+        s_network_tx_payload_controller_crc = s_network_tx_payload_controller_crc_preload;
+        s_network_tx_payload_controller_ready = false;
+        _s_state = NetworkState_Pream1;
     }
+
+    if(_s_state == NetworkState_Pream1) { _byte = NETWORK_PREAMBULA_B1; _s_state = NetworkState_Pream2; }
     else if(_s_state == NetworkState_Pream2) { _byte = NETWORK_PREAMBULA_B2; _s_state = NetworkState_Pream3; }
     else if(_s_state == NetworkState_Pream3) { _byte = NETWORK_PREAMBULA_B3; _s_state = NetworkState_Pream4; }
     else if(_s_state == NetworkState_Pream4) { _byte = NETWORK_PREAMBULA_B4; _s_state = NetworkState_Cmd; }
@@ -98,7 +97,6 @@ void network_cycle() {
         else if(_s_state == NetworkState_Size && _byte == _s_size) { _s_crc = crc8_ccitt_update(0, _byte); _s_size_left = _s_size; _s_state = _s_size ? NetworkState_Payload : NetworkState_CRC; }
         else if(_s_state == NetworkState_Payload) { _s_crc = crc8_ccitt_update(_s_crc, _byte); _s_size_left--; if(!_s_size_left) _s_state = NetworkState_CRC; }
         else if(_s_state == NetworkState_CRC) { _s_state = _s_crc == _byte ? NetworkState_Packet : NetworkState_Pream1; }
-        else _s_state = NetworkState_Pream1;
 
         if(_s_state == NetworkState_Packet) {
             uint8_t *_dst = NULL;
@@ -116,7 +114,7 @@ void network_cycle() {
                 // skip crc byte
                 _s_rx_idx_pream1++; if(_s_rx_idx_pream1 >= NETWORK_RX_BUFFER_SIZE) _s_rx_idx_pream1 = 0;
             } else {
-                // no payload or consumer, so simple skip the packet
+                // no payload or consumer, so simply skip the packet
                 _s_rx_idx_pream1 += (NETWORK_PACKET_OVERHEAD + _s_size); if(_s_rx_idx_pream1 >= NETWORK_RX_BUFFER_SIZE) _s_rx_idx_pream1 = 0;
             }
             // decrease the size of occupied buffer
@@ -140,6 +138,7 @@ void network_init() {
 #endif
 
     s_network_rx_payload_lcd.control.max_gear = 3;
+    s_network_rx_payload_lcd.control.battery_soc = NetworkBatterySoC_Recuperating;
     s_network_rx_payload_lcd.sensors.temp_motor = 25;
     s_network_rx_payload_lcd.sensors.voltage = 23456;
     s_network_rx_payload_lcd.sensors.wattage = 455;
@@ -158,8 +157,11 @@ void network_update_payload_controller(sNetworkPayload_Controller const *payload
     _crc = crc8_ccitt_update(0, NetworkCmd_Controller);
     _crc = crc8_ccitt_update(_crc, sizeof(sNetworkPayload_Controller));
     while((_cnt--)) _crc = crc8_ccitt_update(_crc, *_ptr++);
-    s_network_tx_payload_controller_ready = false;
-    memcpy(&s_network_tx_payload_controller_preload, payload_controller, sizeof(sNetworkPayload_Controller));
-    s_network_tx_payload_controller_crc_preload = _crc;
-    s_network_tx_payload_controller_ready = true;
+
+    if(s_network_tx_payload_controller_crc_preload != _crc) {
+        s_network_tx_payload_controller_ready = false;
+        memcpy(&s_network_tx_payload_controller_preload, payload_controller, sizeof(sNetworkPayload_Controller));
+        s_network_tx_payload_controller_crc_preload = _crc;
+        s_network_tx_payload_controller_ready = true;
+    }
 }

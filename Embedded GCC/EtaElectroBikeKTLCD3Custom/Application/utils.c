@@ -51,9 +51,49 @@ uint16_t map16(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, u
     return (uint16_t)((uint16_t)((uint32_t)((uint16_t)(x - in_min) * _diff_out) / _diff_in) + out_min);
 }
 
-int16_t conv_tempC2F(int16_t temp_c) { return (temp_c * 9U / 5U) + 32U; }
-uint32_t conv_distanceKm2Mil(uint32_t distance_km) { return (distance_km * 636U) >> 10; }
-uint32_t conv_distanceMil2Km(uint32_t distance_mil) { return (distance_mil << 10) / 636U; }
+uint16_t round16(uint16_t value, uint16_t unit) { return (value + (unit >> 1)) / unit * unit; }
+uint32_t round32(uint32_t value, uint16_t unit) { return (value + (unit >> 1)) / unit * unit; }
 
-uint16_t conv_mh2erps(uint32_t mh, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((mh * 10U * motor_pole_pairs) / 36U / wheel_circumference);  }
-uint32_t conv_erps2mh(uint16_t erps, uint16_t wheel_circumference, uint8_t motor_pole_pairs) { return ((((uint32_t)erps) * wheel_circumference * 36U) / motor_pole_pairs / 10U); }
+static uint16_t pow(uint16_t unit, uint8_t weight) {
+    if(weight == 0) return unit;
+    if(weight == 1) return unit * 10;
+    if(weight == 2) return unit * 100;
+    if(weight == 3) return unit * 1000;
+}
+uint16_t dec16(uint16_t value, uint16_t unit, uint8_t weight) {
+    uint16_t _unit = pow(unit, weight);
+    uint16_t _value = round16(value, _unit);
+    if(_value < value) return _value;
+    if(_value) return _value - _unit;
+    return 0;
+}
+uint32_t dec32(uint32_t value, uint16_t unit, uint8_t weight) {
+    uint16_t _unit = pow(unit, weight);
+    uint32_t _value = round32(value, _unit);
+    if(_value < value) return _value;
+    if(_value) return _value - _unit;
+    return 0;
+}
+
+uint16_t inc16(uint16_t value, uint16_t unit, uint8_t weight, uint16_t max) {
+    uint16_t _unit = pow(unit, weight);
+    uint16_t _value = round16(value, _unit);
+    _value += _unit;
+    if(_value > max) return max;
+    return _value;
+}
+uint32_t inc32(uint32_t value, uint16_t unit, uint8_t weight, uint32_t max) {
+    uint16_t _unit = pow(unit, weight);
+    uint32_t _value = round32(value, _unit);
+    _value += _unit;
+    if(_value > max) return max;
+    return _value;
+}
+
+int16_t conv_tempC_to_F(int16_t temp_c) { return (temp_c * 9U / 5U) + 32U; }
+uint32_t conv_distanceKm_to_Mil(uint32_t distance_km) { return (distance_km * 636U) >> 10; }
+uint32_t conv_distanceMil_to_Km(uint32_t distance_mil) { return ((distance_mil << 10) + 318) / 636U; }
+
+uint16_t conv_10mh_to_erps(uint32_t mh, sNetworkMotorSettings const *motor_settings) { return (uint16_t)((((uint64_t)mh * 100U * motor_settings->motor_pole_pairs) / 36U + (motor_settings->wheel_circumference >> 1)) / motor_settings->wheel_circumference);  }
+uint32_t conv_erps_to_10mh(uint16_t erps, sNetworkMotorSettings const *motor_settings) { return (uint32_t)(((((uint64_t)erps) * motor_settings->wheel_circumference * 36U) / motor_settings->motor_pole_pairs + 50U) / 100U); }
+uint32_t conv_erps_to_10m(uint32_t erps, sNetworkMotorSettings const *motor_settings) { return (uint32_t)(((((uint64_t)erps) * motor_settings->wheel_circumference) / motor_settings->motor_pole_pairs + 5000U) / 10000U); }

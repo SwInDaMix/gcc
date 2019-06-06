@@ -29,19 +29,6 @@ static void logic_shutdown(sSettings *settings) {
     periph_shutdown();
 }
 
-static uint16_t logic_dec(uint16_t value, uint8_t granul) {
-    uint16_t _value = value / granul * granul;
-    if(_value < value) return _value;
-    if(_value) return _value - granul;
-    return 0;
-}
-static uint16_t logic_inc(uint16_t value, uint8_t granul, uint16_t max) {
-    uint16_t _value = value / granul * granul;
-    _value += granul;
-    if(_value > max) return max;
-    return _value;
-}
-
 void logic_init() {
     disp_set_screens(&s_disp_screen_main, &s_disp_screen_settings);
 
@@ -86,28 +73,16 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
             // State "Quick Settings"
             } else if(_s_logic_state == LogicState_QuickSettings) {
                 if(_button == Button_OnOff && _button_state == ButtonState_Click) { if(_s_logic_qsettings_state < (LogicQuickSettingsState__Max - 1)) _s_logic_qsettings_state++; else _s_logic_qsettings_state = 0; }
-                if(_button == Button_Up && _button_state == ButtonState_Click) {
-                    if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMaxSpeed) {
-                        if(settings->measure_unit == DispMainMeasureUnit_Imperic) {
-                            settings->max_mph = logic_inc(settings->max_mph, 10, 990); settings->max_kmh = conv_distanceMil2Km(settings->max_mph);
-                            if(settings->max_kmh > 999) settings->max_kmh = 999;
-                        } else {
-                            settings->max_kmh = logic_inc(settings->max_kmh, 10, 990); settings->max_mph = conv_distanceKm2Mil(settings->max_kmh);
-                        }
-                    }
-                    if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMeasureUnit) { settings->measure_unit = DispMainMeasureUnit_Metric; }
+                if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMaxSpeed) {
+                    uint32_t _value = conv_erps_to_10mh(settings->motor_settings.max_erps, &settings->motor_settings);
+                    if(settings->measure_unit == DispMainMeasureUnit_Imperic) _value = conv_distanceKm_to_Mil(_value);
+                    if(_button == Button_Up) _value = inc32(round32(_value, 50), 100, _button_state - ButtonState_Click, 9990);
+                    if(_button == Button_Down) _value = dec32(round32(_value, 50), 100, _button_state - ButtonState_Click);
+                    if(settings->measure_unit == DispMainMeasureUnit_Imperic) _value = conv_distanceMil_to_Km(_value);
+                    settings->motor_settings.max_erps = conv_10mh_to_erps(_value, &settings->motor_settings);
+                    DBGF("after : %lu, %u\n", _value, settings->motor_settings.max_erps);
                 }
-                if(_button == Button_Down && _button_state == ButtonState_Click) {
-                    if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMaxSpeed) {
-                        if(settings->measure_unit == DispMainMeasureUnit_Imperic) {
-                            settings->max_mph = logic_dec(settings->max_mph, 10); settings->max_kmh = conv_distanceMil2Km(settings->max_mph);
-                            if(settings->max_kmh > 999) settings->max_kmh = 999;
-                        } else {
-                            settings->max_kmh = logic_dec(settings->max_kmh, 10); settings->max_mph = conv_distanceKm2Mil(settings->max_kmh);
-                        }
-                    }
-                    if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMeasureUnit) { settings->measure_unit = DispMainMeasureUnit_Imperic; }
-                }
+
                 if(_button == Button_OnOff && _button_state == ButtonState_LongDoubleClick) {
                     if(_s_logic_qsettings_state == LogicQuickSettingsState_ResetTTM) { settings->total_ride_time = 0; periph_reset_seconds(); }
                     if(_s_logic_qsettings_state == LogicQuickSettingsState_ResetODO) { settings->odometer = 0; _s_reset_erotations = s_logic_network_payload_lcd.stat.erotations; }
@@ -129,7 +104,6 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         _state = DispState_Main;
         s_disp_screen_main.flashing = DispMainFlashing_None;
         s_disp_screen_main.gear = s_logic_network_payload_controller.control.gear;
-        periph_set_backlight_pwm_duty_cycle((FLAG_IS_SET(settings->flags, SettingsFlag_AlwaysBacklight) || FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) ? settings->backlight_brightness : 0);
         if(FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) _flags |= DispMainFlags_Light;
         if(FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_CruiseControl) || FLAG_IS_SET(s_logic_network_payload_lcd.control.flags, NetworkLCDControlFlag_CruiseControl)) _flags |= DispMainFlags_Cruise;
         if(FLAG_IS_SET(s_logic_network_payload_lcd.control.flags, NetworkLCDControlFlag_Accelerating)) _flags |= DispMainFlags_Accelerating;
@@ -147,26 +121,31 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         _state = DispState_Settings;
     }
 
+    periph_set_backlight_pwm_duty_cycle((FLAG_IS_SET(settings->flags, SettingsFlag_AlwaysBacklight) || FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) ? settings->backlight_brightness : 0);
+
     s_logic_network_payload_controller.sensors.voltage = sensors->voltage;
     s_logic_network_payload_controller.sensors.system_temp = sensors->system_temp;
 
     s_disp_screen_main.measure_unit = settings->measure_unit;
+    s_disp_screen_main.battery_soc = s_logic_network_payload_lcd.control.battery_soc;
     s_disp_screen_main.sensors.voltage = s_logic_network_payload_lcd.sensors.voltage;
     s_disp_screen_main.sensors.wattage = s_logic_network_payload_lcd.sensors.wattage;
-    s_disp_screen_main.sensors.temp_system = s_disp_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? conv_tempC2F(sensors->system_temp) : sensors->system_temp;
-    s_disp_screen_main.sensors.temp_motor = s_disp_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? conv_tempC2F(s_logic_network_payload_lcd.sensors.temp_motor) : s_logic_network_payload_lcd.sensors.temp_motor;
+    s_disp_screen_main.sensors.temp_system = sensors->system_temp;
+    s_disp_screen_main.sensors.temp_motor = s_logic_network_payload_lcd.sensors.temp_motor;
     s_disp_screen_main.stat.wattage_consumed = s_logic_network_payload_lcd.stat.wattage_consumed;
-    s_disp_screen_main.stat.distance.session = (uint64_t)(s_logic_network_payload_lcd.stat.erotations - _s_reset_erotations) * settings->wheel_circumference / settings->motor_pole_pairs / 10000U;
+    s_disp_screen_main.stat.distance.session = conv_erps_to_10m(s_logic_network_payload_lcd.stat.erotations - _s_reset_erotations, &settings->motor_settings);
     s_disp_screen_main.stat.distance.odometer = settings->odometer + s_disp_screen_main.stat.distance.session;
 
-    s_disp_screen_main.speed.max = (settings->measure_unit == DispMainMeasureUnit_Imperic ? settings->max_mph : settings->max_kmh) * 50U;
-    s_disp_screen_main.speed.avg = s_logic_network_payload_lcd.stat.ride_time ? ((uint64_t)s_disp_screen_main.stat.distance.session * 18000U / s_logic_network_payload_lcd.stat.ride_time) : 0;
-    s_disp_screen_main.speed.current = conv_erps2mh(s_logic_network_payload_lcd.sensors.erps, settings->wheel_circumference, settings->motor_pole_pairs) / 2;
+    s_disp_screen_main.speed.max = conv_erps_to_10mh(settings->motor_settings.max_erps, &settings->motor_settings);
+    s_disp_screen_main.speed.avg = s_logic_network_payload_lcd.stat.ride_time ? ((uint64_t)s_disp_screen_main.stat.distance.session * 3600U / s_logic_network_payload_lcd.stat.ride_time) : 0;
+    s_disp_screen_main.speed.current = conv_erps_to_10mh(s_logic_network_payload_lcd.sensors.erps, &settings->motor_settings);
     if(settings->measure_unit == DispMainMeasureUnit_Imperic) {
-        s_disp_screen_main.stat.distance.session = conv_distanceKm2Mil(s_disp_screen_main.stat.distance.session);
-        s_disp_screen_main.stat.distance.odometer = conv_distanceKm2Mil(s_disp_screen_main.stat.distance.odometer);
-        s_disp_screen_main.speed.avg = conv_distanceKm2Mil(s_disp_screen_main.speed.avg);
-        s_disp_screen_main.speed.current = conv_distanceKm2Mil(s_disp_screen_main.speed.current);
+        s_disp_screen_main.sensors.temp_system = conv_tempC_to_F(s_disp_screen_main.sensors.temp_system);
+        s_disp_screen_main.sensors.temp_motor = conv_tempC_to_F(s_disp_screen_main.sensors.temp_motor);
+        s_disp_screen_main.stat.distance.session = conv_distanceKm_to_Mil(s_disp_screen_main.stat.distance.session);
+        s_disp_screen_main.stat.distance.odometer = conv_distanceKm_to_Mil(s_disp_screen_main.stat.distance.odometer);
+        s_disp_screen_main.speed.avg = conv_distanceKm_to_Mil(s_disp_screen_main.speed.avg);
+        s_disp_screen_main.speed.current = conv_distanceKm_to_Mil(s_disp_screen_main.speed.current);
     }
 
     // update session time

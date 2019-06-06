@@ -32,7 +32,6 @@ bool buttons_process(ePeriphButton periph_button_repeat_click, eButton *button, 
         if(_s_periph_button_repeat_click_prev != periph_button_repeat_click) _s_error = true;
 
         if(!_s_error) {
-
             if(_periph_buttons == PeriphButton_Up) _button = Button_Up;
             else if(_periph_buttons == PeriphButton_OnOff) _button = Button_OnOff;
             else if(_periph_buttons == PeriphButton_Down) _button = Button_Down;
@@ -51,8 +50,10 @@ bool buttons_process(ePeriphButton periph_button_repeat_click, eButton *button, 
                 }
                 // long tap
                 if(_s_clicks && _s_clock == BUTTON_TICKS_LONGCLICK && _s_button_pressed != UINT8_MAX) {
-                    if(_is_repeat) { *button = _s_button_pressed; *button_state = ButtonState_Click + _s_clicks - 1; _s_repeat_clicks = _s_clicks; _s_clicks = 0; _res = true; }
-                    else { *button = _s_button_pressed; *button_state = ButtonState_LongClick + _s_clicks - 1; _s_clicks = 0; _s_button_pressed = UINT8_MAX; _res = true; }
+                    if(_button != UINT8_MAX) {
+                        if(_is_repeat) { *button = _s_button_pressed; *button_state = ButtonState_Click + _s_clicks - 1; _s_repeat_clicks = _s_clicks; _s_clicks = 0; _res = true; }
+                        else { *button = _s_button_pressed; *button_state = ButtonState_LongClick + _s_clicks - 1; _s_clicks = 0; _s_button_pressed = UINT8_MAX; _res = true; }
+                    } else { _s_repeat_clicks = _s_clicks = 0; _s_button_pressed = UINT8_MAX; }
                 }
                 // repeat after long tap
                 if(_is_repeat && _s_repeat_clicks && _s_clock >= (BUTTON_TICKS_LONGCLICK + BUTTON_TICKS_REPEAT) && _s_button_pressed != UINT8_MAX) {

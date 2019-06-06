@@ -21,35 +21,22 @@ typedef enum {
     HT1622_CMD_RC_INT       = 0x10   // RC INT     (0001-10XX-X) System clock source, on-chip RC oscillator
 } eHT1622_Command;
 
-#define delay()
-//static void delay() {
-//    uint16_t _i;
-//    for (_i = 0; _i < 1000; ++_i) {
-//        nop();
-//    }
-//}
-
 static void ht1622_send_bits(uint16_t data, eHT1622_Bits bits) {
     uint16_t _mask = 1 << (bits - 1);
     while((bits--)) {
         periph_set_ht1622_data(data & _mask);
-        //delay();
         periph_set_ht1622_write(false);
-        //delay();
         periph_set_ht1622_write(true);
-        //delay();
         _mask >>= 1;
     }
 }
 
 static void ht1622_send_command(eHT1622_Command command) {
     periph_set_ht1622_cs(false);
-    delay();
     ht1622_send_bits(HT1622_ID_CMD, HT1622_BITS_ID);
     ht1622_send_bits(command, HT1622_BITS_DATA);
     ht1622_send_bits(0, HT1622_BITS_X);
     periph_set_ht1622_cs(true);
-    delay();
 }
 
 void ht1622_init() {
@@ -57,11 +44,16 @@ void ht1622_init() {
     periph_set_ht1622_write(true);
     periph_set_ht1622_read(true);
     periph_set_ht1622_data(true);
-    periph_set_ht1622_vdd(true);
+    periph_set_ht1622_vdd(false);
 
     ht1622_send_command(HT1622_CMD_RC_INT);
     ht1622_send_command(HT1622_CMD_SYS_EN);
     ht1622_send_command(HT1622_CMD_LCD_ON);
+}
+
+void ht1622_deinit() {
+    ht1622_send_command(HT1622_CMD_LCD_OFF);
+    ht1622_send_command(HT1622_CMD_SYS_DIS);
 }
 
 void ht1622_send_frame(sHT1622Frame const *buffer) {
@@ -69,7 +61,6 @@ void ht1622_send_frame(sHT1622Frame const *buffer) {
     uint8_t cnt = sizeof(buffer->buffer);
 
     periph_set_ht1622_cs(false);
-    delay();
     ht1622_send_bits(HT1622_ID_DATA, HT1622_BITS_ID);
     ht1622_send_bits(0, HT1622_BITS_ADDRESS);
 
@@ -78,5 +69,4 @@ void ht1622_send_frame(sHT1622Frame const *buffer) {
     }
 
     periph_set_ht1622_cs(true);
-    delay();
 }

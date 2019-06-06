@@ -20,8 +20,6 @@ int main(void) {
     network_init();
     logic_init();
 
-    periph_wdt_enable();
-
     while(disp_cycle(DispState_AnimateWithDigits) == DispState_AnimateWithDigits) {
         periph_wdt_reset();
         periph_set_onoff_power(periph_get_buttons() & PeriphButton_OnOff);
@@ -38,6 +36,6 @@ int main(void) {
         logic_cycle(sensors_get_current(), settings_get_current());
 
 //        _tim_e = periph_get_timer();
-//        DBGF("%u\n", (_tim_e - _tim_s));
+//        //DBGF("%u\n", (_tim_e - _tim_s));
     }
 }

@@ -10,4 +10,5 @@ typedef struct {
 } sHT1622Frame;
 
 void ht1622_init();
+void ht1622_deinit();
 void ht1622_send_frame(sHT1622Frame const *frame);

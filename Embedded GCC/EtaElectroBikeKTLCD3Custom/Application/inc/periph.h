@@ -127,7 +127,6 @@ void periph_uart_putbyte(uint8_t byte);
 void periph_eeprom_read(void *dst, uint16_t offset, size_t size);
 void periph_eeprom_write(void const *src, uint16_t offset, size_t size);
 
-void periph_wdt_enable();
 void periph_wdt_reset();
 
 void periph_shutdown();

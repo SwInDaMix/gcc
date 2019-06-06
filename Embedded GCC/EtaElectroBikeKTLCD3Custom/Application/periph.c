@@ -6,6 +6,7 @@
 #include "config.h"
 #include "periph.h"
 #include "main.h"
+#include "ht1622.h"
 
 #define _gpio_init(name) GPIO_Init(name##__PORT, name##__PIN, name##__MODE)
 #define _gpio_set_exti(port) EXTI_SetExtIntSensitivity(EXTI_PORT_GPIO##port, EXTI_IT_PORT##port##_SENS)
@@ -73,11 +74,10 @@ void periph_init() {
     UART2_Cmd(ENABLE);
 
     // Configure watchdog
+    IWDG_Enable();
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-    IWDG_SetPrescaler(IWDG_Prescaler_256);
-    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    IWDG_SetPrescaler(IWDG_Prescaler_16);
     IWDG_SetReload(255);
-    IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
     IWDG_ReloadCounter();
 
     enableInterrupts();
@@ -153,11 +153,13 @@ uint32_t periph_get_seconds() { uint32_t _seconds; disableInterrupts(); _seconds
 void periph_reset_seconds() { disableInterrupts(); s_periph_seconds = 0; s_periph_mseconds = 0; enableInterrupts(); }
 
 void putchar(unsigned char character) {
+    (void)character;
 #ifdef DEBUG
     while(UART2_GetFlagStatus(UART2_FLAG_TXE) == RESET);
     UART2_SendData8(character);
 #endif
 }
+
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback) { s_periph_uart_on_received_callback = callback; }
 void periph_uart_set_on_transmit_callback(periph_uart_on_transmit_callback_t callback) { s_periph_uart_on_transmit_callback = callback; UART2_ITConfig(UART2_IT_TXE, ENABLE); }
 void periph_uart_putbyte(uint8_t byte) { putchar(byte); }
@@ -182,7 +184,6 @@ void periph_eeprom_write(void const *src, uint16_t offset, size_t size){
 
 }
 
-void periph_wdt_enable() { IWDG_Enable(); IWDG_ReloadCounter(); }
-void periph_wdt_reset() { IWDG_ReloadCounter(); }
+void periph_wdt_reset() { IWDG->KR = IWDG_KEY_REFRESH; }
 
-void periph_shutdown() { periph_set_onoff_power(false); while(true); }
+void periph_shutdown() { disableInterrupts(); ht1622_deinit(); periph_set_onoff_power(false); while(true) /* periph_wdt_reset() */; }

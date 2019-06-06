@@ -161,7 +161,7 @@ static eDispState disp_cycle_main() {
                 else if(s_screen_main.state == DispMainState_Statistic2) { _speed = s_screen_main.speed.avg; s_bits |= DISP_FLAG(LCDBit_Speed_AVS); }
                 else _speed = s_screen_main.speed.current;
 
-                _speed = (_speed + 25) / 50;
+                _speed = (_speed + 5) / 10;
                 if(_speed < 1000) {
                     disp_fill_digits16(&_speed, LCDDigitOffset_Speed_3, true, 3, 2);
                     s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_Speed_Mph : LCDBit_Speed_Kmh);
@@ -174,7 +174,7 @@ static eDispState disp_cycle_main() {
             }
         }
 
-        // process temperature and amp/wattage
+        // process temperature / wattage
         if(s_screen_main.flashing == DispMainFlashing_None) {
             if(s_screen_main.state == DispMainState_Statistic1) {
                 // system temperature
@@ -273,7 +273,7 @@ static eDispState disp_cycle_main() {
                     disp_fill_digits16(&_time_high, LCDDigitOffset_TravelTime_5, true, 2, 2);
                     disp_fill_digits16(&_time, LCDDigitOffset_TravelTime_3, true, 3, 1);
                     s_bits |= DISP_FLAG(LCDBit_TravelTime_Colon);
-                    if(_is_minutes) s_bits_flashing |= DISP_FLAG(LCDBit_TravelTime_Colon);
+                    if(!_is_minutes) s_bits_flashing |= DISP_FLAG(LCDBit_TravelTime_Colon);
                 } else s_digits[LCDDigitOffset_TravelTime_4] = s_digits[LCDDigitOffset_TravelTime_5] = LCDDigit_o;
                 if(_is_ttm_flashing) {
                     s_digits_flashing |= (DISP_FLAG(LCDDigitOffset_TravelTime_1) | DISP_FLAG(LCDDigitOffset_TravelTime_2) | DISP_FLAG(LCDDigitOffset_TravelTime_3) | DISP_FLAG(LCDDigitOffset_TravelTime_4) | DISP_FLAG(LCDDigitOffset_TravelTime_5));

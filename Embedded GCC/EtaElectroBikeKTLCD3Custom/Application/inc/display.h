@@ -52,9 +52,9 @@ typedef struct {
     eNetworkBatterySoC battery_soc;
     uint8_t gear;                   // 0 is parking mode;
     struct {
-        uint16_t current;           // in 0.002 Kmh/mph, max 49974
-        uint16_t max;               // in 0.002 Kmh/mph, max 49974
-        uint16_t avg;               // in 0.002 Kmh/mph, max 49974
+        uint16_t current;           // in 0.01 Kmh/mph
+        uint16_t max;               // in 0.01 Kmh/mph
+        uint16_t avg;               // in 0.01 Kmh/mph
     } speed;
     struct {
         uint16_t voltage;           // in 0.002 V
@@ -65,13 +65,13 @@ typedef struct {
     struct {
         uint16_t wattage_consumed;  // wattage consumed
         struct {
-            uint32_t session;       // 0.01 Km/Mil (9999.99 max)
-            uint32_t odometer;      // 0.01 Km/Mil (9999.99 max)
+            uint32_t session;       // 0.01 Km/Mil
+            uint32_t odometer;      // 0.01 Km/Mil
         } distance;
         struct {
-            uint32_t session;       // in seconds (3599999 max - 999h 59m 59s)
-            uint32_t ride;          // in seconds (3599999 max - 999h 59m 59s)
-            uint32_t total_ride;    // in seconds (3599999 max - 999h 59m 59s)
+            uint32_t session;       // in seconds
+            uint32_t ride;          // in seconds
+            uint32_t total_ride;    // in seconds
         } time;
     } stat;
 } sDispScreenMain;
