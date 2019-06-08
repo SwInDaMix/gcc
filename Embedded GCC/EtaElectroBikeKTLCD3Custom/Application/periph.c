@@ -6,7 +6,6 @@
 #include "config.h"
 #include "periph.h"
 #include "main.h"
-#include "ht1622.h"
 
 #define _gpio_init(name) GPIO_Init(name##__PORT, name##__PIN, name##__MODE)
 #define _gpio_set_exti(port) EXTI_SetExtIntSensitivity(EXTI_PORT_GPIO##port, EXTI_IT_PORT##port##_SENS)
@@ -150,7 +149,6 @@ void periph_set_ht1622_data(bool data) { _gpio_write(HT1622_DATA, data); }
 uint16_t periph_get_timer() { uint16_t _timer; disableInterrupts(); _timer = s_periph_timer; enableInterrupts(); return _timer; }
 uint16_t periph_get_mseconds() { uint16_t _mseconds; disableInterrupts(); _mseconds = s_periph_mseconds; enableInterrupts(); return _mseconds; }
 uint32_t periph_get_seconds() { uint32_t _seconds; disableInterrupts(); _seconds = s_periph_seconds; enableInterrupts(); return _seconds; }
-void periph_reset_seconds() { disableInterrupts(); s_periph_seconds = 0; s_periph_mseconds = 0; enableInterrupts(); }
 
 void putchar(unsigned char character) {
     (void)character;
@@ -186,4 +184,4 @@ void periph_eeprom_write(void const *src, uint16_t offset, size_t size){
 
 void periph_wdt_reset() { IWDG->KR = IWDG_KEY_REFRESH; }
 
-void periph_shutdown() { disableInterrupts(); ht1622_deinit(); periph_set_onoff_power(false); while(true) /* periph_wdt_reset() */; }
+void periph_shutdown() { disableInterrupts(); periph_set_onoff_power(false); while(true) /*periph_wdt_reset()*/; }

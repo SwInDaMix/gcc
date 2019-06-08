@@ -103,7 +103,6 @@ void periph_atom_end();
 uint16_t periph_get_timer();
 uint16_t periph_get_mseconds();
 uint32_t periph_get_seconds();
-void periph_reset_seconds();
 
 uint16_t periph_get_adc_voltage();
 

@@ -14,7 +14,7 @@
 
 typedef struct {
     uint16_t voltage;               // in 0.002 V
-    uint16_t system_temp;           // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and flashing)
+    uint16_t system_temp;           // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and drive_setting)
 } sSensors;
 
 sSensors const *sensors_get_current();

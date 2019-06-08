@@ -14,10 +14,6 @@ typedef struct {
     eSettingsFlags flags;
     eDispMainMeasureUnit measure_unit;
     uint8_t backlight_brightness;
-
-    uint32_t odometer;                  // 0.01 Km/Mil
-    uint16_t total_ride_time;
-
     sNetworkMotorSettings motor_settings;
 } sSettings;
 

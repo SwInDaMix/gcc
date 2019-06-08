@@ -25,31 +25,47 @@ typedef enum {
 } eDispMainMeasureUnit;
 
 typedef enum {
+    DispStatusFlags_None,
+    DispStatusFlags_Light = (1 << 0),
+    DispStatusFlags_Braking = (1 << 1),
+} eDispStatusFlags;
+
+typedef enum {
     DispMainFlags_None,
-    DispMainFlags_Light = (1 << 0),
-    DispMainFlags_Braking = (1 << 1),
-    DispMainFlags_Walking = (1 << 2),
-    DispMainFlags_Assist = (1 << 3),
-    DispMainFlags_Cruise = (1 << 4),
-    DispMainFlags_Accelerating = (1 << 5)
+    DispMainFlags_Walking = (1 << 0),
+    DispMainFlags_Assist = (1 << 1),
+    DispMainFlags_Cruise = (1 << 2),
+    DispMainFlags_Accelerating = (1 << 3)
 } eDispMainFlags;
 
 typedef enum {
-    DispMainFlashing_None,
-    DispMainFlashing_MaxSpeed,
-    DispMainFlashing_TTM,
-    DispMainFlashing_ODO,
-    DispMainFlashing_MeasureUnitMetric,
-    DispMainFlashing_MeasureUnitImperic,
-    DispMainFlashing__Max
-} eDispMainFlashing;
+    DispMainDriveSetting_None,
+    DispMainDriveSetting_MaxSpeed,
+    DispMainDriveSetting_TTM,
+    DispMainDriveSetting_ODO,
+    DispMainDriveSetting_MeasureUnitMetric,
+    DispMainDriveSetting_MeasureUnitImperic,
+    DispMainDriveSetting__Max
+} eDispMainDriveSetting;
+
+typedef enum {
+    DispSetting_MotorPhase,
+    DispSetting_MotorPolePairs,
+    DispSetting_WheelCircumference,
+    DispSetting_CorrectionAngle,
+    DispSetting__Max,
+} eDispSetting;
+
+typedef struct {
+    eDispStatusFlags flags;
+    eNetworkBatterySoC battery_soc;
+} sDispScreenStatus;
 
 typedef struct {
     eDispMainState state;
-    eDispMainMeasureUnit measure_unit;
     eDispMainFlags flags;
-    eDispMainFlashing flashing;
-    eNetworkBatterySoC battery_soc;
+    eDispMainMeasureUnit measure_unit;
+    eDispMainDriveSetting drive_setting;
     uint8_t gear;                   // 0 is parking mode;
     struct {
         uint16_t current;           // in 0.01 Kmh/mph
@@ -59,8 +75,8 @@ typedef struct {
     struct {
         uint16_t voltage;           // in 0.002 V
         uint16_t wattage;           // in watts
-        int16_t temp_system;        // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and flashing)
-        int16_t temp_motor;         // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and flashing)
+        int16_t temp_system;        // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and drive_setting)
+        int16_t temp_motor;         // from -99 to 199 C/F (200 to 399 treated as 0 to 199 C/F and drive_setting)
     } sensors;
     struct {
         uint16_t wattage_consumed;  // wattage consumed
@@ -76,11 +92,11 @@ typedef struct {
     } stat;
 } sDispScreenMain;
 
-
 typedef struct {
-    uint8_t dummy;
+    eDispSetting setting;
+    sNetworkMotorSettings motor_settings;
 } sDispScreenSettings;
 
 eDispState disp_cycle(eDispState state);
 
-void disp_set_screens(sDispScreenMain *screen_main, sDispScreenSettings *screen_settings);
+void disp_set_screens(sDispScreenStatus *screen_status, sDispScreenMain *screen_main, sDispScreenSettings *screen_settings);

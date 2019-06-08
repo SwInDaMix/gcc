@@ -24,12 +24,10 @@ static void setting_eeprom_write() { periph_eeprom_write(&s_settings, 0, sizeof(
 static void setting_eeprom_default() {
     s_settings.settings.measure_unit = DispMainMeasureUnit_Metric;
     s_settings.settings.backlight_brightness = 128;
-    s_settings.settings.odometer = 0;
-    s_settings.settings.total_ride_time = 0;
-    s_settings.settings.motor_settings.motor_phase = NetworkMotorPhase_180;
-    s_settings.settings.motor_settings.motor_correction_angle = -77;
+    s_settings.settings.motor_settings.phase = NetworkMotorPhase_180;
+    s_settings.settings.motor_settings.correction_angle = -77;
     s_settings.settings.motor_settings.wheel_circumference = 798;
-    s_settings.settings.motor_settings.motor_pole_pairs = 15;
+    s_settings.settings.motor_settings.pole_pairs = 15;
     s_settings.settings.motor_settings.max_erps = 120;
 }
 

@@ -49,10 +49,70 @@ static void disp_fill_digits32(uint32_t *number, eLCDDigitOffset digit_offset, b
     }
 }
 
-static uint8_t s_disp_animation_with_digits = 0;
+// =========================
+// Status screen processing
+// =========================
+static sDispScreenStatus *s_screen_status_ptr;
+static sDispScreenStatus s_screen_status;
 static uint8_t s_disp_animation_battery_soc0 = UINT8_MAX;
 static uint8_t s_disp_animation_battery_soc3 = UINT8_MAX;
+static eDispState disp_cycle_status() {
+    #define SOC_LEVEL_COUNT 4
 
+    // TODO: mutex (not needed now because FW is single-threaded)
+    if(s_screen_status_ptr) memcpy(&s_screen_status, s_screen_status_ptr, sizeof(sDispScreenStatus));
+    else memset(&s_screen_status, 0, sizeof(sDispScreenStatus));
+    // TODO: mutex (not needed now because FW is single-threaded)
+
+    // process battery SoC
+    {
+        uint8_t _level = 0;
+        bool _is_rlevel = false;
+
+        if(s_screen_status.battery_soc == NetworkBatterySoC_Flashing) {
+            if(s_disp_animation_battery_soc3 >= 2) s_disp_animation_battery_soc3 = 0;
+            if(s_disp_animation_battery_soc3 & 1) s_battery_soc_bits = LCDBatterySocBit_Body;
+        } else if(s_screen_status.battery_soc >= NetworkBatterySoC_Charging0 && s_screen_status.battery_soc <= NetworkBatterySoC_Charging3) {
+            s_battery_soc_bits |= LCDBatterySocBit_Body;
+            if(s_disp_animation_battery_soc3 >= (SOC_LEVEL_COUNT + 1)) s_disp_animation_battery_soc3 = s_screen_status.battery_soc - NetworkBatterySoC_Charging0;
+            _level = s_disp_animation_battery_soc3;
+        } else if(s_screen_status.battery_soc == NetworkBatterySoC_Recuperating) {
+            s_battery_soc_bits |= LCDBatterySocBit_Body;
+            if(s_disp_animation_battery_soc0 >= (SOC_LEVEL_COUNT * 4 + 1)) s_disp_animation_battery_soc0 = 0;
+            _level = s_disp_animation_battery_soc0;
+            if(_level >= (SOC_LEVEL_COUNT * 2)) {
+                _level -= (SOC_LEVEL_COUNT * 2);
+                _is_rlevel = true;
+            }
+            if(_level >= SOC_LEVEL_COUNT) {
+                _is_rlevel = !_is_rlevel;
+                _level = (SOC_LEVEL_COUNT * 2) - _level;
+            }
+        } else if(s_screen_status.battery_soc >= NetworkBatterySoC_Empty && s_screen_status.battery_soc <= NetworkBatterySoC_Full) {
+            s_battery_soc_bits |= LCDBatterySocBit_Body;
+            _level = s_screen_status.battery_soc - NetworkBatterySoC_Empty;
+        }
+
+        if(_is_rlevel) {
+            if(_level > 0) s_battery_soc_bits |= LCDBatterySocBit_SoC_4;
+            if(_level > 1) s_battery_soc_bits |= LCDBatterySocBit_SoC_3;
+            if(_level > 2) s_battery_soc_bits |= LCDBatterySocBit_SoC_2;
+            if(_level > 3) s_battery_soc_bits |= LCDBatterySocBit_SoC_1;
+        } else {
+            if(_level > 0) s_battery_soc_bits |= LCDBatterySocBit_SoC_1;
+            if(_level > 1) s_battery_soc_bits |= LCDBatterySocBit_SoC_2;
+            if(_level > 2) s_battery_soc_bits |= LCDBatterySocBit_SoC_3;
+            if(_level > 3) s_battery_soc_bits |= LCDBatterySocBit_SoC_4;
+        }
+    }
+
+    if(s_screen_status.flags & DispStatusFlags_Light) { s_bits |= DISP_FLAG(LCDBit_Light); }
+    if(s_screen_status.flags & DispStatusFlags_Braking) { s_bits |= DISP_FLAG(LCDBit_Braking); }
+
+    return DispState_Settings;
+}
+
+static uint8_t s_disp_animation_with_digits = 0;
 // ======================================
 // Animate with digits screen processing
 // ======================================
@@ -73,64 +133,17 @@ static eDispState disp_cycle_animate_with_digits() {
 static sDispScreenMain *s_screen_main_ptr;
 static sDispScreenMain s_screen_main;
 static eDispState disp_cycle_main() {
-    #define SOC_LEVEL_COUNT 4
-
-    bool _is_measure_flashing;
+    bool _is_setting_measure;
 
     // TODO: mutex (not needed now because FW is single-threaded)
     if(s_screen_main_ptr) memcpy(&s_screen_main, s_screen_main_ptr, sizeof(sDispScreenMain));
     else memset(&s_screen_main, 0, sizeof(sDispScreenMain));
     // TODO: mutex (not needed now because FW is single-threaded)
 
-    _is_measure_flashing = s_screen_main.flashing == DispMainFlashing_MeasureUnitMetric || s_screen_main.flashing == DispMainFlashing_MeasureUnitImperic;
-
-    // process battery SoC
-    {
-        uint8_t _level = 0;
-        bool _is_rlevel = false;
-
-        if(s_screen_main.battery_soc == NetworkBatterySoC_Flashing) {
-            if(s_disp_animation_battery_soc3 >= 2) s_disp_animation_battery_soc3 = 0;
-            if(s_disp_animation_battery_soc3 & 1) s_battery_soc_bits = LCDBatterySocBit_Body;
-        } else if(s_screen_main.battery_soc >= NetworkBatterySoC_Charging0 && s_screen_main.battery_soc <= NetworkBatterySoC_Charging3) {
-            s_battery_soc_bits |= LCDBatterySocBit_Body;
-            if(s_disp_animation_battery_soc3 >= (SOC_LEVEL_COUNT + 1)) s_disp_animation_battery_soc3 = s_screen_main.battery_soc - NetworkBatterySoC_Charging0;
-            _level = s_disp_animation_battery_soc3;
-        } else if(s_screen_main.battery_soc == NetworkBatterySoC_Recuperating) {
-            s_battery_soc_bits |= LCDBatterySocBit_Body;
-            if(s_disp_animation_battery_soc0 >= (SOC_LEVEL_COUNT * 4 + 1)) s_disp_animation_battery_soc0 = 0;
-            _level = s_disp_animation_battery_soc0;
-            if(_level >= (SOC_LEVEL_COUNT * 2)) {
-                _level -= (SOC_LEVEL_COUNT * 2);
-                _is_rlevel = true;
-            }
-            if(_level >= SOC_LEVEL_COUNT) {
-                _is_rlevel = !_is_rlevel;
-                _level = (SOC_LEVEL_COUNT * 2) - _level;
-            }
-        } else if(s_screen_main.battery_soc >= NetworkBatterySoC_Empty && s_screen_main.battery_soc <= NetworkBatterySoC_Full) {
-            s_battery_soc_bits |= LCDBatterySocBit_Body;
-            _level = s_screen_main.battery_soc - NetworkBatterySoC_Empty;
-        }
-
-        if(_is_rlevel) {
-            if(_level > 0) s_battery_soc_bits |= LCDBatterySocBit_SoC_4;
-            if(_level > 1) s_battery_soc_bits |= LCDBatterySocBit_SoC_3;
-            if(_level > 2) s_battery_soc_bits |= LCDBatterySocBit_SoC_2;
-            if(_level > 3) s_battery_soc_bits |= LCDBatterySocBit_SoC_1;
-        } else {
-            if(_level > 0) s_battery_soc_bits |= LCDBatterySocBit_SoC_1;
-            if(_level > 1) s_battery_soc_bits |= LCDBatterySocBit_SoC_2;
-            if(_level > 2) s_battery_soc_bits |= LCDBatterySocBit_SoC_3;
-            if(_level > 3) s_battery_soc_bits |= LCDBatterySocBit_SoC_4;
-        }
-    }
-
-    if(s_screen_main.flags & DispMainFlags_Light) { s_bits |= DISP_FLAG(LCDBit_Light); }
-    if(s_screen_main.flags & DispMainFlags_Braking) { s_bits |= DISP_FLAG(LCDBit_Braking); }
+    _is_setting_measure = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitMetric || s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitImperic;
 
     // process gear
-    if(s_screen_main.flashing == DispMainFlashing_None) {
+    if(s_screen_main.drive_setting == DispMainDriveSetting_None) {
         if(s_screen_main.gear == 0) {
             s_digits[LCDDigitOffset_Gear] = LCDDigit_P;
             s_digits_flashing |= DISP_FLAG(LCDDigitOffset_Gear);
@@ -143,21 +156,20 @@ static eDispState disp_cycle_main() {
         s_digits[LCDDigitOffset_Gear] = LCDDigit_F;
     }
 
-    // process measure unit flashing
-    if(_is_measure_flashing) {
-        uint32_t _flags = s_screen_main.flashing == DispMainFlashing_MeasureUnitImperic ?
+    // process measure unit drive_setting
+    if(_is_setting_measure) {
+        uint32_t _flags = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitImperic ?
                           DISP_FLAG(LCDBit_Temp_F) | DISP_FLAG(LCDBit_PowerTemp_F) | DISP_FLAG(LCDBit_ODOVolts_Mil) | DISP_FLAG(LCDBit_Speed_Mph) :
                           DISP_FLAG(LCDBit_Temp_C) | DISP_FLAG(LCDBit_PowerTemp_C) | DISP_FLAG(LCDBit_Speed_Kmh) | DISP_FLAG(LCDBit_ODOVolts_Km);
         s_bits |= _flags;
-        s_bits_flashing |= _flags;
     } else {
         // process speed
         {
-            bool _is_max_flashing = s_screen_main.flashing == DispMainFlashing_MaxSpeed;
-            if(_is_max_flashing || s_screen_main.flashing == DispMainFlashing_None) {
+            bool _is_max_flashing = s_screen_main.drive_setting == DispMainDriveSetting_MaxSpeed;
+            if(_is_max_flashing || s_screen_main.drive_setting == DispMainDriveSetting_None) {
                 uint16_t _speed;
 
-                if(s_screen_main.state == DispMainState_Statistic1 || _is_max_flashing) { _speed = s_screen_main.speed.max; s_bits |= DISP_FLAG(LCDBit_Speed_MXS); if(_is_max_flashing) s_bits_flashing |= DISP_FLAG(LCDBit_Speed_MXS); }
+                if(s_screen_main.state == DispMainState_Statistic1 || _is_max_flashing) { _speed = s_screen_main.speed.max; s_bits |= DISP_FLAG(LCDBit_Speed_MXS); }
                 else if(s_screen_main.state == DispMainState_Statistic2) { _speed = s_screen_main.speed.avg; s_bits |= DISP_FLAG(LCDBit_Speed_AVS); }
                 else _speed = s_screen_main.speed.current;
 
@@ -167,15 +179,12 @@ static eDispState disp_cycle_main() {
                     s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_Speed_Mph : LCDBit_Speed_Kmh);
                     s_bits |= DISP_FLAG(LCDBit_Speed_Dot);
                 } else s_digits[LCDDigitOffset_Speed_1] = s_digits[LCDDigitOffset_Speed_2] = LCDDigit_o;
-                if(_is_max_flashing) {
-                    s_digits_flashing |= (DISP_FLAG(LCDDigitOffset_Speed_1) | DISP_FLAG(LCDDigitOffset_Speed_2) | DISP_FLAG(LCDDigitOffset_Speed_3));
-                    s_bits_flashing |= (DISP_FLAG(LCDBit_Speed_MXS) | DISP_FLAG(LCDBit_Speed_Dot) | DISP_FLAG(LCDBit_Speed_Kmh) | DISP_FLAG(LCDBit_Speed_Mph));
-                } else if(s_screen_main.flags & DispMainFlags_Walking) { s_bits |= DISP_FLAG(LCDBit_Speed_Walking); s_bits_flashing |= DISP_FLAG(LCDBit_Speed_Walking); }
+                if(s_screen_main.flags & DispMainFlags_Walking) { s_bits |= DISP_FLAG(LCDBit_Speed_Walking); s_bits_flashing |= DISP_FLAG(LCDBit_Speed_Walking); }
             }
         }
 
         // process temperature / wattage
-        if(s_screen_main.flashing == DispMainFlashing_None) {
+        if(s_screen_main.drive_setting == DispMainDriveSetting_None) {
             if(s_screen_main.state == DispMainState_Statistic1) {
                 // system temperature
                 uint16_t _temp = UINT16_MAX;
@@ -209,7 +218,7 @@ static eDispState disp_cycle_main() {
 
             if(s_disp_animation_with_digits >= ANIMATE_ACCELERATION_COUNT) s_disp_animation_with_digits = 0;
             s_digits[LCDDigitOffset_Temp_1] = s_digits[LCDDigitOffset_Temp_2] = LCDDigit_ROTD0 + s_disp_animation_with_digits;
-        } else if(s_screen_main.flashing == DispMainFlashing_None) {
+        } else if(s_screen_main.drive_setting == DispMainDriveSetting_None) {
             // motor temperature
             uint16_t _temp = UINT16_MAX;
             bool _negative = false, _is_below_10 = false;
@@ -231,14 +240,14 @@ static eDispState disp_cycle_main() {
 
         // process distance
         {
-            bool _is_odo_flashing = s_screen_main.flashing == DispMainFlashing_ODO;
-            if(s_screen_main.flashing == DispMainFlashing_None && s_screen_main.state == DispMainState_Statistic1) {
+            bool _is_odo_flashing = s_screen_main.drive_setting == DispMainDriveSetting_ODO;
+            if(s_screen_main.drive_setting == DispMainDriveSetting_None && s_screen_main.state == DispMainState_Statistic1) {
                 // system voltage
                 uint16_t _voltage = (s_screen_main.sensors.voltage + 25) / 50;
                 disp_fill_digits16(&_voltage, LCDDigitOffset_ODOVolts_5, false, 5, 2);
                 s_bits |= DISP_FLAG(LCDBit_ODOVolts_Dot);
                 s_bits |= DISP_FLAG(LCDBit_ODOVolts_Vol);
-            } else if(_is_odo_flashing || s_screen_main.flashing == DispMainFlashing_None) {
+            } else if(_is_odo_flashing || s_screen_main.drive_setting == DispMainDriveSetting_None) {
                 // distance
                 uint32_t  _dist;
                 if(_is_odo_flashing || s_screen_main.state == DispMainState_Statistic2) { _dist = s_screen_main.stat.distance.odometer; s_bits |= DISP_FLAG(LCDBit_ODOVolts_ODO); }
@@ -249,17 +258,13 @@ static eDispState disp_cycle_main() {
                     s_bits |= DISP_FLAG(LCDBit_ODOVolts_Dot);
                     s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_ODOVolts_Mil : LCDBit_ODOVolts_Km);
                 } else s_digits[LCDDigitOffset_ODOVolts_3] = s_digits[LCDDigitOffset_ODOVolts_4] = LCDDigit_o;
-                if(_is_odo_flashing) {
-                    s_digits_flashing |= (DISP_FLAG(LCDDigitOffset_ODOVolts_1) | DISP_FLAG(LCDDigitOffset_ODOVolts_2) | DISP_FLAG(LCDDigitOffset_ODOVolts_3) | DISP_FLAG(LCDDigitOffset_ODOVolts_4) | DISP_FLAG(LCDDigitOffset_ODOVolts_5));
-                    s_bits_flashing |= (DISP_FLAG(LCDBit_ODOVolts_Dot) | DISP_FLAG(LCDBit_ODOVolts_ODO) | DISP_FLAG(LCDBit_ODOVolts_Km) | DISP_FLAG(LCDBit_ODOVolts_Mil));
-                }
             }
         }
 
         // process traveling time
         {
-            bool _is_ttm_flashing = s_screen_main.flashing == DispMainFlashing_TTM;
-            if(_is_ttm_flashing || s_screen_main.flashing == DispMainFlashing_None) {
+            bool _is_ttm_flashing = s_screen_main.drive_setting == DispMainDriveSetting_TTM;
+            if(_is_ttm_flashing || s_screen_main.drive_setting == DispMainDriveSetting_None) {
                 uint32_t _time_orig;
                 uint16_t _time;
                 bool _is_minutes;
@@ -275,11 +280,6 @@ static eDispState disp_cycle_main() {
                     s_bits |= DISP_FLAG(LCDBit_TravelTime_Colon);
                     if(!_is_minutes) s_bits_flashing |= DISP_FLAG(LCDBit_TravelTime_Colon);
                 } else s_digits[LCDDigitOffset_TravelTime_4] = s_digits[LCDDigitOffset_TravelTime_5] = LCDDigit_o;
-                if(_is_ttm_flashing) {
-                    s_digits_flashing |= (DISP_FLAG(LCDDigitOffset_TravelTime_1) | DISP_FLAG(LCDDigitOffset_TravelTime_2) | DISP_FLAG(LCDDigitOffset_TravelTime_3) | DISP_FLAG(LCDDigitOffset_TravelTime_4) | DISP_FLAG(LCDDigitOffset_TravelTime_5));
-                    s_bits |= (DISP_FLAG(LCDBit_TravelTime_Colon) | DISP_FLAG(LCDBit_TravelTime_TTM));
-                    s_bits_flashing |= (DISP_FLAG(LCDBit_TravelTime_Colon) | DISP_FLAG(LCDBit_TravelTime_TTM));
-                }
             }
         }
     }
@@ -297,6 +297,23 @@ static eDispState disp_cycle_settings() {
     if(s_screen_settings_ptr) memcpy(&s_screen_settings, s_screen_settings_ptr, sizeof(sDispScreenSettings));
     else memset(&s_screen_settings, 0, sizeof(sDispScreenSettings));
     // TODO: mutex (not needed now because FW is single-threaded)
+
+    s_digits[LCDDigitOffset_Gear] = LCDDigit_u;
+    if(s_screen_settings.setting == DispSetting_MotorPhase) {
+        s_digits[LCDDigitOffset_Speed_1] = s_digits[LCDDigitOffset_Speed_2] = LCDDigit_ROT0 + s_screen_settings.motor_settings.phase;
+    } else if(s_screen_settings.setting == DispSetting_MotorPolePairs) {
+        uint16_t _pole_pairs = s_screen_settings.motor_settings.pole_pairs;
+        disp_fill_digits16(&_pole_pairs, LCDDigitOffset_PowerTemp_3, true, 3, 1);
+    } else if(s_screen_settings.setting == DispSetting_WheelCircumference) {
+        uint16_t _wheel_circumference = s_screen_settings.motor_settings.wheel_circumference;
+        disp_fill_digits16(&_wheel_circumference, LCDDigitOffset_ODOVolts_4, false, 4, 1);
+    } else if(s_screen_settings.setting == DispSetting_CorrectionAngle) {
+        bool _is_negative = s_screen_settings.motor_settings.correction_angle < 0;
+        uint16_t _correction_angle = _is_negative ? -s_screen_settings.motor_settings.correction_angle : s_screen_settings.motor_settings.correction_angle;
+        disp_fill_digits16(&_correction_angle, LCDDigitOffset_Temp_2, false, 2, 1);
+        if(_correction_angle) s_bits |= DISP_FLAG(LCDBit_Temp_One);
+        if(_is_negative) s_bits |= DISP_FLAG(LCDBit_Temp_Minus);
+    }
 
     return DispState_Settings;
 }
@@ -321,6 +338,7 @@ eDispState disp_cycle(eDispState state) {
         memset(s_digits, LCDDigit_None, LCDDigitOffset__Max);
         s_digits_flashing = 0;
 
+        disp_cycle_status();
         if(state == DispState_AnimateWithDigits) state = disp_cycle_animate_with_digits();
         else if(state == DispState_Main) state = disp_cycle_main();
         else if(state == DispState_Settings) state = disp_cycle_settings();
@@ -361,6 +379,6 @@ eDispState disp_cycle(eDispState state) {
     return state;
 }
 
-void disp_set_screens(sDispScreenMain *screen_main, sDispScreenSettings *screen_settings) {
-    s_screen_main_ptr = screen_main; s_screen_settings_ptr = screen_settings;
+void disp_set_screens(sDispScreenStatus *screen_status, sDispScreenMain *screen_main, sDispScreenSettings *screen_settings) {
+    s_screen_status_ptr = screen_status; s_screen_main_ptr = screen_main; s_screen_settings_ptr = screen_settings;
 }

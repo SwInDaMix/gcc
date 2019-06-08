@@ -15,6 +15,8 @@
 
 #define swap16(value) ((uint16_t)(((value) & 0xFF) << 8) | (uint16_t)(((value) >> 8) & 0xFF))
 
+void delay_ms(uint16_t ms);
+
 uint8_t crc8_ccitt_update(uint8_t crc, uint8_t byte);
 
 uint8_t divu16(uint16_t *numer, uint8_t denom);
@@ -26,8 +28,8 @@ uint16_t map16(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, u
 uint16_t round16(uint16_t value, uint16_t unit);
 uint32_t round32(uint32_t value, uint16_t unit);
 
-uint16_t dec16(uint16_t value, uint16_t unit, uint8_t weight);
-uint32_t dec32(uint32_t value, uint16_t unit, uint8_t weight);
+uint16_t dec16(uint16_t value, uint16_t unit, uint8_t weight, uint16_t min);
+uint32_t dec32(uint32_t value, uint16_t unit, uint8_t weight, uint16_t min);
 
 uint16_t inc16(uint16_t value, uint16_t unit, uint8_t weight, uint16_t max);
 uint32_t inc32(uint32_t value, uint16_t unit, uint8_t weight, uint32_t max);
