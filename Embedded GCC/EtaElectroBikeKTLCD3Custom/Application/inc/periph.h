@@ -113,7 +113,7 @@ void periph_set_power_up(bool power_up);
 
 void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle);
 
-void periph_set_ht1622_vdd(bool vdd);
+void periph_set_unknown(bool vdd);
 void periph_set_ht1622_cs(bool cs);
 void periph_set_ht1622_write(bool write);
 void periph_set_ht1622_read(bool read);

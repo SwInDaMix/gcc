@@ -30,7 +30,8 @@ static void logic_shutdown() {
     network_update_payload_controller(&s_logic_network_payload_controller);
     settings_flush();
     ht1622_deinit();
-    delay_ms(3000);
+    periph_set_backlight_pwm_duty_cycle(0);
+    delay_ms(1500);
     periph_shutdown();
 }
 
@@ -66,6 +67,7 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         if(buttons_process(_s_buttons_repeat, &_button, &_button_state)) {
             DBGF("bs:%d,%d\n", _button, _button_state);
             if(_button == Button_OnOff && _button_state == ButtonState_LongClick) logic_shutdown();
+            if(_button == Button_OnOff && _button_state == ButtonState_TrippleClick) _s_logic_state = LogicState_Drive;
             // State "Drive"
             if(_s_logic_state == LogicState_Drive) {
                 if(_button == Button_Up && _button_state == ButtonState_LongClick) { FLAG_TOGGLE(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light); }
@@ -105,17 +107,26 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
                         if(_button == Button_Up) _mpp = inc16(_mpp, 1, _button_state - ButtonState_Click, 255);
                         if(_button == Button_Down) _mpp = dec16(_mpp, 1, _button_state - ButtonState_Click, 1);
                         settings->motor_settings.pole_pairs = (uint8_t)_mpp;
-                    } else if(s_disp_screen_settings.setting == DispSetting_WheelCircumference) {
+                    } else if(s_disp_screen_settings.setting == DispSetting_MotorWheelCircumference) {
                         if(_button == Button_Up) settings->motor_settings.wheel_circumference = inc16(settings->motor_settings.wheel_circumference, 1, _button_state - ButtonState_Click, 9999);
                         if(_button == Button_Down) settings->motor_settings.wheel_circumference = dec16(settings->motor_settings.wheel_circumference, 1, _button_state - ButtonState_Click, 50);
-                    } else if(s_disp_screen_settings.setting == DispSetting_CorrectionAngle) {
+                    } else if(s_disp_screen_settings.setting == DispSetting_MotorCorrectionAngle) {
                         uint16_t _ca = settings->motor_settings.correction_angle + 60;
+                        DBGF("--- %d ", settings->motor_settings.correction_angle);
                         if(_button == Button_Up) _ca = inc16(_ca, 1, _button_state - ButtonState_Click, 119);
                         if(_button == Button_Down) _ca = dec16(_ca, 1, _button_state - ButtonState_Click, 1);
                         settings->motor_settings.correction_angle = (int8_t)(_ca - 60);
+                        DBGF("%d\n", settings->motor_settings.correction_angle);
+                    } else if(s_disp_screen_settings.setting == DispSetting_BacklightBrightness) {
+                        uint16_t _bb = map8(settings->backlight_brightness, 0, 255, 0, 100);
+                        if(_button == Button_Up) _bb = inc16(_bb, 1, _button_state - ButtonState_Click, 100);
+                        if(_button == Button_Down) _bb = dec16(_bb, 1, _button_state - ButtonState_Click, 1);
+                        settings->backlight_brightness = map8(_bb, 0, 100, 0, 255);
+                    } else if(s_disp_screen_settings.setting == DispSetting_BacklightAlwaysOn) {
+                        if(_button == Button_Up) FLAG_SET(settings->flags, DispSettingsFlag_BacklightAlwaysOn);
+                        if(_button == Button_Down) FLAG_RESET(settings->flags, DispSettingsFlag_BacklightAlwaysOn);
                     }
                 }
-
                 if(_button == Button_OnOff && _button_state == ButtonState_DoubleClick) { _s_logic_state = LogicState_Drive; }
             }
             _s_disp_drive_timeout = 0;
@@ -147,7 +158,7 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         _state = DispState_Settings;
     }
 
-    periph_set_backlight_pwm_duty_cycle((FLAG_IS_SET(settings->flags, SettingsFlag_AlwaysBacklight) || FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) ? settings->backlight_brightness : 0);
+    periph_set_backlight_pwm_duty_cycle((FLAG_IS_SET(settings->flags, DispSettingsFlag_BacklightAlwaysOn) || FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) ? settings->backlight_brightness : 0);
 
     s_disp_screen_status.battery_soc = s_logic_network_payload_lcd.control.battery_soc;
     if(FLAG_IS_SET(s_logic_network_payload_controller.control.flags, NetworkControllerControlFlag_Light)) _status_flags |= DispStatusFlags_Light;
@@ -186,6 +197,8 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
 
         s_disp_screen_main.flags = _main_flags;
     } else if(_s_logic_state == LogicState_Settings) {
+        s_disp_screen_settings.flags = settings->flags;
+        s_disp_screen_settings.backlight_brightness = settings->backlight_brightness;
         memcpy(&s_disp_screen_settings.motor_settings, &settings->motor_settings, sizeof(sNetworkMotorSettings));
     }
 

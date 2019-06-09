@@ -85,6 +85,7 @@ typedef enum {
     LCDDigit_o,
     LCDDigit_r,
     LCDDigit_u,
+    LCDDigit_y,
     LCDDigit_ROT0,
     LCDDigit_ROT1,
     LCDDigit_ROT2,

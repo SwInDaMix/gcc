@@ -51,10 +51,17 @@ typedef enum {
 typedef enum {
     DispSetting_MotorPhase,
     DispSetting_MotorPolePairs,
-    DispSetting_WheelCircumference,
-    DispSetting_CorrectionAngle,
+    DispSetting_MotorWheelCircumference,
+    DispSetting_MotorCorrectionAngle,
+    DispSetting_BacklightBrightness,
+    DispSetting_BacklightAlwaysOn,
     DispSetting__Max,
 } eDispSetting;
+
+typedef enum {
+    DispSettingsFlag_None,
+    DispSettingsFlag_BacklightAlwaysOn = (1 << 0)
+} eDispSettingsFlags;
 
 typedef struct {
     eDispStatusFlags flags;
@@ -95,6 +102,8 @@ typedef struct {
 typedef struct {
     eDispSetting setting;
     sNetworkMotorSettings motor_settings;
+    uint8_t backlight_brightness;
+    eDispSettingsFlags flags;
 } sDispScreenSettings;
 
 eDispState disp_cycle(eDispState state);

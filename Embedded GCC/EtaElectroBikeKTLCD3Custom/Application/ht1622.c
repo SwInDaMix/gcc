@@ -44,7 +44,6 @@ void ht1622_init() {
     periph_set_ht1622_write(true);
     periph_set_ht1622_read(true);
     periph_set_ht1622_data(true);
-    periph_set_ht1622_vdd(false);
 
     ht1622_send_command(HT1622_CMD_RC_INT);
     ht1622_send_command(HT1622_CMD_SYS_EN);

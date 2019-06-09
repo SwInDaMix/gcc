@@ -87,6 +87,7 @@ typedef enum {
     LCDDigitInternal_o          = 0x0F, // 0000 1111
     LCDDigitInternal_r          = 0x0A, // 0000 1010
     LCDDigitInternal_u          = 0x07, // 0000 0111
+    LCDDigitInternal_y          = 0x3D, // 0011 1101
     LCDDigitInternal_ROT0       = 0x40, // 0100 0000
     LCDDigitInternal_ROT1       = 0x20, // 0010 0000
     LCDDigitInternal_ROT2       = 0x04, // 0000 0100
@@ -178,6 +179,7 @@ static eLCDDigitInternal const s_lcd_digit_enums[LCDDigit__Max] = {
     LCDDigitInternal_o,
     LCDDigitInternal_r,
     LCDDigitInternal_u,
+    LCDDigitInternal_y,
     LCDDigitInternal_ROT0,
     LCDDigitInternal_ROT1,
     LCDDigitInternal_ROT2,

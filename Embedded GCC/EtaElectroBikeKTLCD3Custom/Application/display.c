@@ -304,15 +304,22 @@ static eDispState disp_cycle_settings() {
     } else if(s_screen_settings.setting == DispSetting_MotorPolePairs) {
         uint16_t _pole_pairs = s_screen_settings.motor_settings.pole_pairs;
         disp_fill_digits16(&_pole_pairs, LCDDigitOffset_PowerTemp_3, true, 3, 1);
-    } else if(s_screen_settings.setting == DispSetting_WheelCircumference) {
+    } else if(s_screen_settings.setting == DispSetting_MotorWheelCircumference) {
         uint16_t _wheel_circumference = s_screen_settings.motor_settings.wheel_circumference;
         disp_fill_digits16(&_wheel_circumference, LCDDigitOffset_ODOVolts_4, false, 4, 1);
-    } else if(s_screen_settings.setting == DispSetting_CorrectionAngle) {
+    } else if(s_screen_settings.setting == DispSetting_MotorCorrectionAngle) {
         bool _is_negative = s_screen_settings.motor_settings.correction_angle < 0;
         uint16_t _correction_angle = _is_negative ? -s_screen_settings.motor_settings.correction_angle : s_screen_settings.motor_settings.correction_angle;
         disp_fill_digits16(&_correction_angle, LCDDigitOffset_Temp_2, false, 2, 1);
         if(_correction_angle) s_bits |= DISP_FLAG(LCDBit_Temp_One);
         if(_is_negative) s_bits |= DISP_FLAG(LCDBit_Temp_Minus);
+    } else if(s_screen_settings.setting == DispSetting_BacklightBrightness) {
+        uint16_t _backlight_brightness = map8(s_screen_settings.backlight_brightness, 0, 255, 0, 100);
+        disp_fill_digits16(&_backlight_brightness, LCDDigitOffset_ODOVolts_3, false, 3, 1);
+        s_digits[LCDDigitOffset_ODOVolts_5] = LCDDigit_o;
+        s_digits_flashing |= DISP_FLAG(LCDDigitOffset_ODOVolts_5);
+    } else if(s_screen_settings.setting == DispSetting_BacklightAlwaysOn) {
+        s_digits[LCDDigitOffset_Temp_2] = (s_screen_settings.flags & DispSettingsFlag_BacklightAlwaysOn) ? LCDDigit_y : LCDDigit_n;
     }
 
     return DispState_Settings;

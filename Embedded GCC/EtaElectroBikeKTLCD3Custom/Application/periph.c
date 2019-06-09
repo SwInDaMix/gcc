@@ -140,7 +140,7 @@ void periph_set_power_up(bool power_up) { _gpio_write(POWER_UP, power_up); }
 
 void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle) { TIM1_SetCompare4(UINT8_MAX - duty_cycle); }
 
-void periph_set_ht1622_vdd(bool vdd) { _gpio_write(HT1622_VDD, vdd); }
+void periph_set_unknown(bool vdd) { _gpio_write(HT1622_VDD, vdd); }
 void periph_set_ht1622_cs(bool cs) { _gpio_write(HT1622_CS, cs); }
 void periph_set_ht1622_write(bool write) { _gpio_write(HT1622_WRITE, write); }
 void periph_set_ht1622_read(bool read) { _gpio_write(HT1622_READ, read); }
