@@ -15,12 +15,13 @@
 #define _periph_read_adc_channel(name) (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)(name##__CH << 1)))
 #define _periph_read_adc_channel_10bits(name) ((((uint16_t)_periph_read_adc_channel(name)) << 2) | (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)((name##__CH << 1) + 1))))
 
-static periph_bldc_pwm_overflow_callback_t s_bldc_pwm_overflow_callback = 0;
+static periph_bldc_pwm_overflow_callback_t s_periph_bldc_pwm_overflow_callback = 0;
 static periph_overcurrent_callback_t s_periph_overcurrent_callback = 0;
 static periph_pas_callback_t s_periph_pas_callback = 0;
 static periph_speed_callback_t s_periph_speed_callback = 0;
 static periph_brake_callback_t s_periph_brake_callback = 0;
 static periph_uart_on_received_callback_t s_periph_uart_on_received_callback = 0;
+static periph_uart_on_transmit_callback_t s_periph_uart_on_transmit_callback = 0;
 
 static uint16_t s_periph_adc_counter = 0;
 static uint16_t s_periph_adc_phase_b_current_calibration;
@@ -101,6 +102,7 @@ void periph_init() {
     UART2_Cmd(ENABLE);
 
     // Configure watchdog
+    IWDG_Enable();
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
     IWDG_SetPrescaler(IWDG_Prescaler_4);
     IWDG_SetReload(1);
@@ -135,7 +137,7 @@ void periph_init() {
 
 void TIM1_UPD_OVF_TRG_BRK_IRQHandler() __interrupt(TIM1_UPD_OVF_TRG_BRK_IRQHANDLER) {
     TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
-    if (s_bldc_pwm_overflow_callback) s_bldc_pwm_overflow_callback();
+    if (s_periph_bldc_pwm_overflow_callback) s_periph_bldc_pwm_overflow_callback();
 }
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER) {
@@ -215,7 +217,10 @@ void UART2_IRQHandler(void) __interrupt(UART2_IRQHANDLER) {
     }
 }
 
-void periph_set_bldc_pwm_overflow_callback(periph_bldc_pwm_overflow_callback_t callback) { s_bldc_pwm_overflow_callback = callback; }
+void periph_atom_start() { disableInterrupts(); }
+void periph_atom_end() { enableInterrupts(); }
+
+void periph_set_bldc_pwm_overflow_callback(periph_bldc_pwm_overflow_callback_t callback) { s_periph_bldc_pwm_overflow_callback = callback; }
 uint8_t periph_get_bldc_hall_sensors() { return _gpio_read(HALL_SENSORS); }
 void periph_set_bldc_pwm_duty_cucles(uint16_t dc_a, uint16_t dc_b, uint16_t dc_c) {
     TIM1_SetCompare1(dc_a);
@@ -259,7 +264,27 @@ void putchar(unsigned char character) {
     UART2_SendData8(character);
 }
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback) { s_periph_uart_on_received_callback = callback; }
+void periph_uart_set_on_transmit_callback(periph_uart_on_transmit_callback_t callback) { s_periph_uart_on_transmit_callback = callback; UART2_ITConfig(UART2_IT_TXE, ENABLE); }
 void periph_uart_putbyte(uint8_t byte) { putchar(byte); }
 
-void periph_wdt_enable() { IWDG_Enable(); IWDG_ReloadCounter(); }
+void periph_eeprom_read(void *dst, uint16_t offset, size_t size) {
+    memcpy(dst, (void *)(FLASH_DATA_START_PHYSICAL_ADDRESS + offset), size);
+}
+void periph_eeprom_write(void const *src, uint16_t offset, size_t size){
+    uint8_t _i;
+    uint32_t *_src = (uint32_t *)src;
+    uint32_t *_dst = (uint32_t *)(FLASH_DATA_START_PHYSICAL_ADDRESS + offset);
+
+    FLASH_SetProgrammingTime(FLASH_PROGRAMTIME_STANDARD);
+    FLASH_Unlock(FLASH_MEMTYPE_DATA);
+    while(!FLASH_GetFlagStatus(FLASH_FLAG_DUL));
+    for (_i = 0; _i < ((size + 3) >> 2); _i++) {
+        periph_wdt_reset();
+        FLASH_ProgramWord((uint32_t)(_dst++), *_src++);
+        while(!FLASH_GetFlagStatus(FLASH_FLAG_EOP));
+    }
+    FLASH_Lock(FLASH_MEMTYPE_DATA);
+
+}
+
 void periph_wdt_reset() { IWDG_ReloadCounter(); }

@@ -24,8 +24,9 @@ static void setting_eeprom_write() { periph_eeprom_write(&s_settings, 0, sizeof(
 static void setting_eeprom_default() {
     s_settings.settings.measure_unit = DispMainMeasureUnit_Metric;
     s_settings.settings.backlight_brightness = 128;
+    s_settings.settings.voltage_coefficient = 2125;
     s_settings.settings.motor_settings.phase = NetworkMotorPhase_180;
-    s_settings.settings.motor_settings.correction_angle = -77;
+    s_settings.settings.motor_settings.correction_angle = 12;
     s_settings.settings.motor_settings.wheel_circumference = 798;
     s_settings.settings.motor_settings.pole_pairs = 15;
     s_settings.settings.motor_settings.max_erps = 120;
@@ -35,19 +36,19 @@ void settings_init() {
     uint8_t _crc_eeprom;
     DBG("Reading EEPROM settings\n");
     setting_eeprom_read();
-    _crc_eeprom = setting_calc_crc();
+    _crc_eeprom = 0;//setting_calc_crc();
     if(s_settings.crc != _crc_eeprom) {
-        DBGF("EEPROM settings bad CRC. Applying defaults %d = %d\n", _crc_eeprom, s_settings.crc);
+        DBG("EEPROM settings bad CRC. Applying defaults\n");
         setting_eeprom_default();
         setting_eeprom_write();
-        //s_settings.crc = _crc_eeprom + 1; // corrupt crc to force write later
+        s_settings.crc = _crc_eeprom + 1; // corrupt crc to force write later
     }
 }
 
 void settings_flush() {
     uint8_t _crc_new = setting_calc_crc();
     if(s_settings.crc != _crc_new) {
-        DBGF("Settings changed. Writing to EEPROM %d = %d\n", s_settings.crc, _crc_new);
+        DBG("Settings changed. Writing to EEPROM\n");
         s_settings.crc = _crc_new;
         setting_eeprom_write();
     }

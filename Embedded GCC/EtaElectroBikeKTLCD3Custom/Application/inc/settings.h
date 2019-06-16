@@ -9,6 +9,7 @@ typedef struct {
     eDispSettingsFlags flags;
     eDispMainMeasureUnit measure_unit;
     uint8_t backlight_brightness;
+    uint16_t voltage_coefficient;
     sNetworkMotorSettings motor_settings;
 } sSettings;
 

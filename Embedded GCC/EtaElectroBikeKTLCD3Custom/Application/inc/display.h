@@ -20,7 +20,7 @@ typedef enum {
 
 typedef enum {
     DispMainMeasureUnit_Metric,
-    DispMainMeasureUnit_Imperic,
+    DispMainMeasureUnit_Empirical,
     DispMainMeasureUnit__Max
 } eDispMainMeasureUnit;
 
@@ -44,7 +44,7 @@ typedef enum {
     DispMainDriveSetting_TTM,
     DispMainDriveSetting_ODO,
     DispMainDriveSetting_MeasureUnitMetric,
-    DispMainDriveSetting_MeasureUnitImperic,
+    DispMainDriveSetting_MeasureUnitEmpirical,
     DispMainDriveSetting__Max
 } eDispMainDriveSetting;
 
@@ -55,6 +55,7 @@ typedef enum {
     DispSetting_MotorCorrectionAngle,
     DispSetting_BacklightBrightness,
     DispSetting_BacklightAlwaysOn,
+    DispSetting_VoltageCoefficient,
     DispSetting__Max,
 } eDispSetting;
 
@@ -101,9 +102,10 @@ typedef struct {
 
 typedef struct {
     eDispSetting setting;
+    eDispSettingsFlags flags;
     sNetworkMotorSettings motor_settings;
     uint8_t backlight_brightness;
-    eDispSettingsFlags flags;
+    uint16_t voltage_by_coefficient;        // in 0.002 V
 } sDispScreenSettings;
 
 eDispState disp_cycle(eDispState state);

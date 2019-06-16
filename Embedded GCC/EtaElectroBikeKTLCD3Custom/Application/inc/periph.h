@@ -65,9 +65,20 @@
 #define HT1622_DATA__PIN                    GPIO_PIN_5
 #define HT1622_DATA__MODE                   GPIO_MODE_OUT_PP_LOW_FAST
 
-#define HT1622_VDD__PORT                    GPIOB
-#define HT1622_VDD__PIN                     GPIO_PIN_4
-#define HT1622_VDD__MODE                    GPIO_MODE_OUT_PP_LOW_FAST
+#define SYSTEM_TEMPERATURE__PORT            GPIOB
+#define SYSTEM_TEMPERATURE__PIN             GPIO_PIN_4
+#define SYSTEM_TEMPERATURE__MODE            GPIO_MODE_IN_FL_NO_IT
+#define SYSTEM_TEMPERATURE__CH              ADC1_CHANNEL_4
+
+#define THROTTLE_RATIO__PORT                GPIOB
+#define THROTTLE_RATIO__PIN                 GPIO_PIN_5
+#define THROTTLE_RATIO__MODE                GPIO_MODE_IN_FL_NO_IT
+#define THROTTLE_RATIO__CH                  ADC1_CHANNEL_5
+
+#define BRAKE_RATIO__PORT                   GPIOB
+#define BRAKE_RATIO__PIN                    GPIO_PIN_6
+#define BRAKE_RATIO__MODE                   GPIO_MODE_IN_FL_NO_IT
+#define BRAKE_RATIO__CH                     ADC1_CHANNEL_6
 
 #define BATTERY_VOLTAGE__PORT               GPIOE
 #define BATTERY_VOLTAGE__PIN                GPIO_PIN_7
@@ -75,8 +86,6 @@
 #define BATTERY_VOLTAGE__CH                 ADC1_CHANNEL_8
 
 #define TIMER_MS2TT(msecs) (msecs)
-
-#define PERIPH_ADC_STABILIZATION_PERIOD_MS 500U
 
 typedef enum {
     PeriphButton__None = 0,
@@ -105,6 +114,9 @@ uint16_t periph_get_mseconds();
 uint32_t periph_get_seconds();
 
 uint16_t periph_get_adc_voltage();
+uint16_t periph_get_adc_temperature();
+uint8_t periph_get_adc_throttle_ratio();
+uint8_t periph_get_adc_brake_ratio();
 
 ePeriphButton periph_get_buttons();
 
@@ -113,7 +125,6 @@ void periph_set_power_up(bool power_up);
 
 void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle);
 
-void periph_set_unknown(bool vdd);
 void periph_set_ht1622_cs(bool cs);
 void periph_set_ht1622_write(bool write);
 void periph_set_ht1622_read(bool read);

@@ -84,10 +84,10 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
                 if(_button == Button_Up || _button == Button_Down) {
                     if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMaxSpeed) {
                         uint32_t _value = conv_erps_to_10mh(settings->motor_settings.max_erps, &settings->motor_settings);
-                        if(settings->measure_unit == DispMainMeasureUnit_Imperic) _value = conv_distanceKm_to_Mil(_value);
+                        if(settings->measure_unit == DispMainMeasureUnit_Empirical) _value = conv_distanceKm_to_Mil(_value);
                         if(_button == Button_Up) _value = inc32(round32(_value, 50), 100, _button_state - ButtonState_Click, 9990);
                         if(_button == Button_Down) _value = dec32(round32(_value, 50), 100, _button_state - ButtonState_Click, 0);
-                        if(settings->measure_unit == DispMainMeasureUnit_Imperic) _value = conv_distanceMil_to_Km(_value);
+                        if(settings->measure_unit == DispMainMeasureUnit_Empirical) _value = conv_distanceMil_to_Km(_value);
                         settings->motor_settings.max_erps = conv_10mh_to_erps(_value, &settings->motor_settings);
                     }
                 }
@@ -112,11 +112,9 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
                         if(_button == Button_Down) settings->motor_settings.wheel_circumference = dec16(settings->motor_settings.wheel_circumference, 1, _button_state - ButtonState_Click, 50);
                     } else if(s_disp_screen_settings.setting == DispSetting_MotorCorrectionAngle) {
                         uint16_t _ca = settings->motor_settings.correction_angle + 60;
-                        DBGF("--- %d ", settings->motor_settings.correction_angle);
                         if(_button == Button_Up) _ca = inc16(_ca, 1, _button_state - ButtonState_Click, 119);
                         if(_button == Button_Down) _ca = dec16(_ca, 1, _button_state - ButtonState_Click, 1);
                         settings->motor_settings.correction_angle = (int8_t)(_ca - 60);
-                        DBGF("%d\n", settings->motor_settings.correction_angle);
                     } else if(s_disp_screen_settings.setting == DispSetting_BacklightBrightness) {
                         uint16_t _bb = map8(settings->backlight_brightness, 0, 255, 0, 100);
                         if(_button == Button_Up) _bb = inc16(_bb, 1, _button_state - ButtonState_Click, 100);
@@ -125,6 +123,10 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
                     } else if(s_disp_screen_settings.setting == DispSetting_BacklightAlwaysOn) {
                         if(_button == Button_Up) FLAG_SET(settings->flags, DispSettingsFlag_BacklightAlwaysOn);
                         if(_button == Button_Down) FLAG_RESET(settings->flags, DispSettingsFlag_BacklightAlwaysOn);
+                    } else if(s_disp_screen_settings.setting == DispSetting_VoltageCoefficient) {
+                        if(_button == Button_Up) settings->voltage_coefficient = inc16(settings->voltage_coefficient, 1, _button_state - ButtonState_Click, 2225);
+                        if(_button == Button_Down) settings->voltage_coefficient = dec16(settings->voltage_coefficient, 1, _button_state - ButtonState_Click, 1925);
+                        DBGF("voltage_coefficient %d\n", settings->voltage_coefficient);
                     }
                 }
                 if(_button == Button_OnOff && _button_state == ButtonState_DoubleClick) { _s_logic_state = LogicState_Drive; }
@@ -152,7 +154,7 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         if(_s_logic_qsettings_state == LogicQuickSettingsState_ResetTTM) s_disp_screen_main.drive_setting = DispMainDriveSetting_TTM;
         else if(_s_logic_qsettings_state == LogicQuickSettingsState_ResetODO) s_disp_screen_main.drive_setting = DispMainDriveSetting_ODO;
         else if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMaxSpeed) s_disp_screen_main.drive_setting = DispMainDriveSetting_MaxSpeed;
-        else if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMeasureUnit) s_disp_screen_main.drive_setting = settings->measure_unit == DispMainMeasureUnit_Imperic ? DispMainDriveSetting_MeasureUnitImperic : DispMainDriveSetting_MeasureUnitMetric;
+        else if(_s_logic_qsettings_state == LogicQuickSettingsState_AdjustMeasureUnit) s_disp_screen_main.drive_setting = settings->measure_unit == DispMainMeasureUnit_Empirical ? DispMainDriveSetting_MeasureUnitEmpirical : DispMainDriveSetting_MeasureUnitMetric;
     // State "Settings"
     } else if(_s_logic_state == LogicState_Settings) {
         _state = DispState_Settings;
@@ -170,7 +172,7 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
 
     if(_s_logic_state == LogicState_Drive || _s_logic_state == LogicState_QuickSettings) {
         s_disp_screen_main.measure_unit = settings->measure_unit;
-        s_disp_screen_main.sensors.voltage = s_logic_network_payload_lcd.sensors.voltage;
+        s_disp_screen_main.sensors.voltage = sensors->voltage;//s_logic_network_payload_lcd.sensors.voltage;
         s_disp_screen_main.sensors.wattage = s_logic_network_payload_lcd.sensors.wattage;
         s_disp_screen_main.stat.wattage_consumed = s_logic_network_payload_lcd.stat.wattage_consumed;
 
@@ -181,7 +183,7 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
         s_disp_screen_main.speed.current = conv_erps_to_10mh(s_logic_network_payload_lcd.sensors.erps, &settings->motor_settings);
         s_disp_screen_main.speed.max = conv_erps_to_10mh(settings->motor_settings.max_erps, &settings->motor_settings);
         s_disp_screen_main.speed.avg = s_logic_network_payload_lcd.stat.ride_time >= 60 ? ((uint64_t)s_disp_screen_main.stat.distance.session * 3600U / s_logic_network_payload_lcd.stat.ride_time) : 0;
-        if(settings->measure_unit == DispMainMeasureUnit_Imperic) {
+        if(settings->measure_unit == DispMainMeasureUnit_Empirical) {
             s_disp_screen_main.sensors.temp_system = conv_tempC_to_F(s_disp_screen_main.sensors.temp_system);
             s_disp_screen_main.sensors.temp_motor = conv_tempC_to_F(s_disp_screen_main.sensors.temp_motor);
             s_disp_screen_main.stat.distance.session = conv_distanceKm_to_Mil(s_disp_screen_main.stat.distance.session);
@@ -199,18 +201,24 @@ void logic_cycle(sSensors const *sensors, sSettings *settings) {
     } else if(_s_logic_state == LogicState_Settings) {
         s_disp_screen_settings.flags = settings->flags;
         s_disp_screen_settings.backlight_brightness = settings->backlight_brightness;
+        s_disp_screen_settings.voltage_by_coefficient = sensors->voltage;
         memcpy(&s_disp_screen_settings.motor_settings, &settings->motor_settings, sizeof(sNetworkMotorSettings));
     }
 
     // update session time
     {
         static uint32_t _s_seconds_prev;
+        static bool _s_test;
 
         uint8_t _diff = (uint8_t)(_seconds - _s_seconds_prev);
-
-        _s_notify_flags_timeout += _diff;
-        _s_disp_drive_timeout += _diff;
-        _s_seconds_prev = _seconds;
+        if(_diff > 0) {
+            DBGF("adc: %4u, %4u, %3d, %3u, %3u\n", periph_get_adc_voltage(), periph_get_adc_temperature(), sensors->system_temp, periph_get_adc_throttle_ratio(), periph_get_adc_brake_ratio());
+            _s_notify_flags_timeout += _diff;
+            _s_disp_drive_timeout += _diff;
+            _s_seconds_prev = _seconds;
+            periph_set_power_up(_s_test);
+            _s_test = !_s_test;
+        }
     }
 
     network_update_payload_controller(&s_logic_network_payload_controller);

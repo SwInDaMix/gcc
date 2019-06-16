@@ -140,7 +140,7 @@ static eDispState disp_cycle_main() {
     else memset(&s_screen_main, 0, sizeof(sDispScreenMain));
     // TODO: mutex (not needed now because FW is single-threaded)
 
-    _is_setting_measure = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitMetric || s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitImperic;
+    _is_setting_measure = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitMetric || s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitEmpirical;
 
     // process gear
     if(s_screen_main.drive_setting == DispMainDriveSetting_None) {
@@ -158,7 +158,7 @@ static eDispState disp_cycle_main() {
 
     // process measure unit drive_setting
     if(_is_setting_measure) {
-        uint32_t _flags = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitImperic ?
+        uint32_t _flags = s_screen_main.drive_setting == DispMainDriveSetting_MeasureUnitEmpirical ?
                           DISP_FLAG(LCDBit_Temp_F) | DISP_FLAG(LCDBit_PowerTemp_F) | DISP_FLAG(LCDBit_ODOVolts_Mil) | DISP_FLAG(LCDBit_Speed_Mph) :
                           DISP_FLAG(LCDBit_Temp_C) | DISP_FLAG(LCDBit_PowerTemp_C) | DISP_FLAG(LCDBit_Speed_Kmh) | DISP_FLAG(LCDBit_ODOVolts_Km);
         s_bits |= _flags;
@@ -176,7 +176,7 @@ static eDispState disp_cycle_main() {
                 _speed = (_speed + 5) / 10;
                 if(_speed < 1000) {
                     disp_fill_digits16(&_speed, LCDDigitOffset_Speed_3, true, 3, 2);
-                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_Speed_Mph : LCDBit_Speed_Kmh);
+                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Empirical ? LCDBit_Speed_Mph : LCDBit_Speed_Kmh);
                     s_bits |= DISP_FLAG(LCDBit_Speed_Dot);
                 } else s_digits[LCDDigitOffset_Speed_1] = s_digits[LCDDigitOffset_Speed_2] = LCDDigit_o;
                 if(s_screen_main.flags & DispMainFlags_Walking) { s_bits |= DISP_FLAG(LCDBit_Speed_Walking); s_bits_flashing |= DISP_FLAG(LCDBit_Speed_Walking); }
@@ -197,7 +197,7 @@ static eDispState disp_cycle_main() {
                 if(_temp != UINT16_MAX) {
                     disp_fill_digits16(&_temp, LCDDigitOffset_PowerTemp_3, true, 3, 1);
                     if(_negative) s_digits[_is_below_10 ? LCDDigitOffset_PowerTemp_2 : LCDDigitOffset_PowerTemp_1] = LCDDigit_Minus;
-                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_PowerTemp_F : LCDBit_PowerTemp_C);
+                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Empirical ? LCDBit_PowerTemp_F : LCDBit_PowerTemp_C);
                 } else s_digits[LCDDigitOffset_PowerTemp_2] = s_digits[LCDDigitOffset_PowerTemp_3] = LCDDigit_o;
             } else {
                 // wattage
@@ -234,7 +234,7 @@ static eDispState disp_cycle_main() {
                     else s_bits |= DISP_FLAG(LCDBit_Temp_Minus);
                 }
                 if(_temp) s_bits |= DISP_FLAG(LCDBit_Temp_One);
-                s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_Temp_F : LCDBit_Temp_C);
+                s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Empirical ? LCDBit_Temp_F : LCDBit_Temp_C);
             } else s_digits[LCDDigitOffset_Temp_1] = s_digits[LCDDigitOffset_Temp_2] = LCDDigit_o;
         }
 
@@ -256,7 +256,7 @@ static eDispState disp_cycle_main() {
                 if(_dist < 100000L) {
                     disp_fill_digits32(&_dist, LCDDigitOffset_ODOVolts_5, false, 5, 2);
                     s_bits |= DISP_FLAG(LCDBit_ODOVolts_Dot);
-                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Imperic ? LCDBit_ODOVolts_Mil : LCDBit_ODOVolts_Km);
+                    s_bits |= DISP_FLAG(s_screen_main.measure_unit == DispMainMeasureUnit_Empirical ? LCDBit_ODOVolts_Mil : LCDBit_ODOVolts_Km);
                 } else s_digits[LCDDigitOffset_ODOVolts_3] = s_digits[LCDDigitOffset_ODOVolts_4] = LCDDigit_o;
             }
         }
@@ -320,6 +320,12 @@ static eDispState disp_cycle_settings() {
         s_digits_flashing |= DISP_FLAG(LCDDigitOffset_ODOVolts_5);
     } else if(s_screen_settings.setting == DispSetting_BacklightAlwaysOn) {
         s_digits[LCDDigitOffset_Temp_2] = (s_screen_settings.flags & DispSettingsFlag_BacklightAlwaysOn) ? LCDDigit_y : LCDDigit_n;
+    } else if(s_screen_settings.setting == DispSetting_VoltageCoefficient) {
+        uint16_t _voltage = (s_screen_settings.voltage_by_coefficient + 25) / 50;
+        disp_fill_digits16(&_voltage, LCDDigitOffset_ODOVolts_5, false, 5, 2);
+        s_bits |= DISP_FLAG(LCDBit_ODOVolts_Dot);
+        s_bits |= DISP_FLAG(LCDBit_ODOVolts_Vol);
+        s_bits_flashing |= DISP_FLAG(LCDBit_ODOVolts_Vol);
     }
 
     return DispState_Settings;

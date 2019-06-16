@@ -28,8 +28,6 @@ int main(void) {
     drv_init(_settings, _sensors, false, BLDC_VOLTAGE_TO_ERPS_FACTOR);
     hud_init(_settings, _sensors);
 
-    periph_wdt_enable();
-
     while (true) {
 //        uint8_t _tt, _dd;
 

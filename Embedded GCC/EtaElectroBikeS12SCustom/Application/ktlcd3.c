@@ -21,23 +21,23 @@ static uint8_t const s_max_current_lookup[] = {
 };
 
 #define _wheel_diam_correct (0.998f)
-#define _wheel_diam_i_to_m(diam) ((diam) * 0.0254f)
-#define _calc_wheel_circumference(diam) ((float)(diam) * _wheel_diam_correct * 3.1415926f)
-static float const s_wheel_size_lookup[] = {
-        [KTLCD3_WheelSize_6] = _calc_wheel_circumference(_wheel_diam_i_to_m(6)),
-        [KTLCD3_WheelSize_8] = _calc_wheel_circumference(_wheel_diam_i_to_m(8)),
-        [KTLCD3_WheelSize_10] = _calc_wheel_circumference(_wheel_diam_i_to_m(10)),
-        [KTLCD3_WheelSize_12] = _calc_wheel_circumference(_wheel_diam_i_to_m(12)),
-        [KTLCD3_WheelSize_14] = _calc_wheel_circumference(_wheel_diam_i_to_m(14)),
-        [KTLCD3_WheelSize_16] = _calc_wheel_circumference(_wheel_diam_i_to_m(16)),
-        [KTLCD3_WheelSize_18] = _calc_wheel_circumference(_wheel_diam_i_to_m(18)),
-        [KTLCD3_WheelSize_20] = _calc_wheel_circumference(_wheel_diam_i_to_m(20)),
-        [KTLCD3_WheelSize_22] = _calc_wheel_circumference(_wheel_diam_i_to_m(22)),
-        [KTLCD3_WheelSize_24] = _calc_wheel_circumference(_wheel_diam_i_to_m(24)),
-        [KTLCD3_WheelSize_26] = _calc_wheel_circumference(_wheel_diam_i_to_m(26)),
-        [KTLCD3_WheelSize_28] = _calc_wheel_circumference(_wheel_diam_i_to_m(28)),
-        [KTLCD3_WheelSize_29] = _calc_wheel_circumference(_wheel_diam_i_to_m(29)),
-        [KTLCD3_WheelSize_700c] = _calc_wheel_circumference(0.7f)
+#define _wheel_diam_i_to_mm(diam) ((diam) * 25.4f)
+#define _calc_wheel_circumference(diam) ((uint16_t)((float)(diam) * _wheel_diam_correct * 3.1415926f + 0.5f))
+static uint16_t const s_wheel_size_lookup[] = {
+        [KTLCD3_WheelSize_6] = _calc_wheel_circumference(_wheel_diam_i_to_mm(6)),
+        [KTLCD3_WheelSize_8] = _calc_wheel_circumference(_wheel_diam_i_to_mm(8)),
+        [KTLCD3_WheelSize_10] = _calc_wheel_circumference(_wheel_diam_i_to_mm(10)),
+        [KTLCD3_WheelSize_12] = _calc_wheel_circumference(_wheel_diam_i_to_mm(12)),
+        [KTLCD3_WheelSize_14] = _calc_wheel_circumference(_wheel_diam_i_to_mm(14)),
+        [KTLCD3_WheelSize_16] = _calc_wheel_circumference(_wheel_diam_i_to_mm(16)),
+        [KTLCD3_WheelSize_18] = _calc_wheel_circumference(_wheel_diam_i_to_mm(18)),
+        [KTLCD3_WheelSize_20] = _calc_wheel_circumference(_wheel_diam_i_to_mm(20)),
+        [KTLCD3_WheelSize_22] = _calc_wheel_circumference(_wheel_diam_i_to_mm(22)),
+        [KTLCD3_WheelSize_24] = _calc_wheel_circumference(_wheel_diam_i_to_mm(24)),
+        [KTLCD3_WheelSize_26] = _calc_wheel_circumference(_wheel_diam_i_to_mm(26)),
+        [KTLCD3_WheelSize_28] = _calc_wheel_circumference(_wheel_diam_i_to_mm(28)),
+        [KTLCD3_WheelSize_29] = _calc_wheel_circumference(_wheel_diam_i_to_mm(29)),
+        [KTLCD3_WheelSize_700c] = _calc_wheel_circumference(700.0f)
 };
 
 static int8_t const s_min_voltage_correct_lookup[] = {
@@ -77,7 +77,7 @@ static uint8_t s_wheel_speed_pulses_per_revolution;
 static bool s_ignore_pas_gear_ratio;
 static bool s_throttle_when_moving;
 static uint8_t s_throttle_startup_settings;
-static eKTLCD3_MotorPhase s_motor_phase;
+static eNetworkMotorPhase s_motor_phase;
 static uint8_t s_handlebar_function;
 static bool s_cruise_control;
 static eKTLCD3_MaxCurrent s_max_current;
@@ -98,7 +98,7 @@ static void _ktlcd3_reparse_struct() {
         s_ignore_pas_gear_ratio = s_received_struct.wheel_size_max_speed_p2_p3_p4 & KTLCD3_Masks_p3;
         s_throttle_when_moving = s_received_struct.wheel_size_max_speed_p2_p3_p4 & KTLCD3_Masks_p4;
         s_throttle_startup_settings = (s_received_struct.c1_c2 & KTLCD3_Masks_c1) >> KTLCD3_Shifts_c1;
-        s_motor_phase = (eKTLCD3_MotorPhase)(s_received_struct.c1_c2 & KTLCD3_Masks_c2) >> KTLCD3_Shifts_c2;
+        s_motor_phase = (eNetworkMotorPhase)(s_received_struct.c1_c2 & KTLCD3_Masks_c2) >> KTLCD3_Shifts_c2;
         s_handlebar_function = (s_received_struct.c4_cruise & KTLCD3_Masks_c4) >> KTLCD3_Shifts_c4;
         s_cruise_control = s_received_struct.c4_cruise & KTLCD3_Masks_CruiseControl;
         s_max_current = (eKTLCD3_MaxCurrent)(s_received_struct.c5_c14 & KTLCD3_Masks_c5) >> KTLCD3_Shifts_c5;
@@ -116,13 +116,13 @@ eKTLCD3_AssistLevel ktlcd3_get_assist_level() { _ktlcd3_reparse_struct(); return
 uint8_t ktlcd3_get_assist_level_duty_cycle(eKTLCD3_AssistLevel assist_level) { return s_assist_level_duty_cycles_lookup[assist_level]; }
 uint8_t ktlcd3_get_motor_poluses() { _ktlcd3_reparse_struct(); return s_motor_poluses; }
 eKTLCD3_WheelSize ktlcd3_get_wheel_size() { _ktlcd3_reparse_struct(); return s_wheel_size; }
-float ktlcd3_get_wheel_size_circumference(eKTLCD3_WheelSize wheel_size) { return s_wheel_size_lookup[wheel_size]; }
+uint16_t ktlcd3_get_wheel_size_circumference(eKTLCD3_WheelSize wheel_size) { return s_wheel_size_lookup[wheel_size]; }
 uint8_t ktlcd3_get_max_speed() { _ktlcd3_reparse_struct(); return s_max_speed; }
 uint8_t ktlcd3_get_wheel_speed_pulses_per_revolution() { _ktlcd3_reparse_struct(); return s_wheel_speed_pulses_per_revolution; }
 bool ktlcd3_get_ignore_pas_gear_ratio() { _ktlcd3_reparse_struct(); return s_ignore_pas_gear_ratio; }
 bool ktlcd3_get_throttle_when_moving() { _ktlcd3_reparse_struct(); return s_throttle_when_moving; }
 uint8_t ktlcd3_get_throttle_startup_settings() { _ktlcd3_reparse_struct(); return s_throttle_startup_settings; }
-eKTLCD3_MotorPhase ktlcd3_get_motor_phase() { _ktlcd3_reparse_struct(); return s_motor_phase; }
+eNetworkMotorPhase ktlcd3_get_motor_phase() { _ktlcd3_reparse_struct(); return s_motor_phase; }
 uint8_t ktlcd3_get_handlebar_function() { _ktlcd3_reparse_struct(); return s_handlebar_function; }
 bool ktlcd3_get_cruise_control() { _ktlcd3_reparse_struct(); return s_cruise_control; }
 eKTLCD3_MaxCurrent ktlcd3_get_max_current() { _ktlcd3_reparse_struct(); return s_max_current; }

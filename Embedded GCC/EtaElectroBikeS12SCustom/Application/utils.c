@@ -1,4 +1,18 @@
-#include <utils.h>
+#include "utils.h"
+
+uint8_t crc8_ccitt_update(uint8_t crc, uint8_t byte) {
+    uint8_t i;
+    uint8_t data;
+
+    data = crc ^ byte;
+    for (i = 0; i < 8; i++) {
+        if ((data & 0x80) != 0) {
+            data <<= 1;
+            data ^= 0x07;
+        } else data <<= 1;
+    }
+    return data;
+}
 
 uint8_t map8(uint8_t x, uint8_t in_min, uint8_t in_max, uint8_t out_min, uint8_t out_max) {
     uint8_t _diff_in, _diff_out;

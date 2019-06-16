@@ -15,13 +15,16 @@
 #define _gpio_triger_EXTI_SENSITIVITY_RISE_FALL(name, callback) if((callback) && (_xor & name##__PINS)) { callback(_current & name##__PIN); }
 #define _gpio_triger_EXTI_SENSITIVITY_FALL_ONLY(name, callback) if((callback) && (_xor & name##__PINS) && !(_current & name##__PIN)) { callback(); }
 
-#define _periph_read_adc_channel(name) (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)(name##__CH << 1)))
-#define _periph_read_adc_channel_10bits(name) ((((uint16_t)_periph_read_adc_channel(name)) << 2) | (*(uint8_t*)(uint16_t)((uint16_t)ADC1_BaseAddress + (uint8_t)((name##__CH << 1) + 1))))
+#define _periph_read_adc(name) (ADC1->DRH)
+#define _periph_read_adc_10bits(name) ((((uint16_t)ADC1->DRH) << 2) | (ADC1->DRL))
 
 static periph_uart_on_received_callback_t s_periph_uart_on_received_callback = 0;
 static periph_uart_on_transmit_callback_t s_periph_uart_on_transmit_callback = 0;
 
 static uint16_t s_periph_adc_voltage;
+static uint16_t s_periph_adc_temperature;
+static uint8_t s_periph_adc_throttle_ratio;
+static uint8_t s_periph_adc_brake_ratio;
 
 static volatile uint16_t s_periph_timer;
 static volatile uint16_t s_periph_mseconds;
@@ -43,12 +46,15 @@ void periph_init() {
     _gpio_init(HT1622_WRITE);
     _gpio_init(HT1622_READ);
     _gpio_init(HT1622_DATA);
-    _gpio_init(HT1622_VDD);
+    _gpio_init(SYSTEM_TEMPERATURE);
+    _gpio_init(BATTERY_VOLTAGE);
+    _gpio_init(THROTTLE_RATIO);
+    _gpio_init(BRAKE_RATIO);
 
     // Init GPIO to be used as ADC inputs
     _gpio_init(BATTERY_VOLTAGE);
     ADC1_DeInit();
-    ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, ADC1_CHANNEL_9, ADC1_PRESSEL_FCPU_D18, ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_LEFT, ADC1_SCHMITTTRIG_CHANNEL9, DISABLE);
+    ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, ADC1_CHANNEL_4, ADC1_PRESSEL_FCPU_D18, ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_LEFT, 0, DISABLE);
     ADC1_ITConfig(ADC1_IT_EOCIE, ENABLE);
     ADC1_Cmd(ENABLE);
 
@@ -84,12 +90,32 @@ void periph_init() {
 }
 
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER) {
+    static uint8_t _s_adc_channel;
+    static uint16_t _s_periph_adc_temperature_acc;
     static uint16_t _s_periph_adc_voltage_acc;
+    static uint16_t _s_periph_adc_throttle_ratio_acc;
+    static uint16_t _s_periph_adc_brake_ratio_acc;
 
-    ADC1->CSR = ADC1_IT_EOCIE | (uint8_t)(ADC1_CHANNEL_9);
+    if(_s_adc_channel == SYSTEM_TEMPERATURE__CH) {
+        _s_periph_adc_temperature_acc = _s_periph_adc_temperature_acc - s_periph_adc_temperature + _periph_read_adc_10bits();
+        s_periph_adc_temperature = _s_periph_adc_temperature_acc >> 6;
+        _s_adc_channel = THROTTLE_RATIO__CH;
+    } else if(_s_adc_channel == THROTTLE_RATIO__CH) {
+        _s_periph_adc_throttle_ratio_acc = _s_periph_adc_throttle_ratio_acc - s_periph_adc_throttle_ratio + _periph_read_adc();
+        s_periph_adc_throttle_ratio = (uint8_t)(_s_periph_adc_throttle_ratio_acc >> 2);
+        _s_adc_channel = BRAKE_RATIO__CH;
+    } else if(_s_adc_channel == BRAKE_RATIO__CH) {
+        _s_periph_adc_brake_ratio_acc = _s_periph_adc_brake_ratio_acc - s_periph_adc_brake_ratio + _periph_read_adc();
+        s_periph_adc_brake_ratio = (uint8_t)(_s_periph_adc_brake_ratio_acc >> 2);
+        _s_adc_channel = BATTERY_VOLTAGE__CH;
+    } else if(_s_adc_channel == BATTERY_VOLTAGE__CH) {
+        _s_periph_adc_voltage_acc = _s_periph_adc_voltage_acc - s_periph_adc_voltage + _periph_read_adc_10bits();
+        s_periph_adc_voltage = _s_periph_adc_voltage_acc >> 6;
+        _s_adc_channel = SYSTEM_TEMPERATURE__CH;
+    } else _s_adc_channel = SYSTEM_TEMPERATURE__CH;
 
-    _s_periph_adc_voltage_acc = _s_periph_adc_voltage_acc - s_periph_adc_voltage + _periph_read_adc_channel_10bits(BATTERY_VOLTAGE);
-    s_periph_adc_voltage = _s_periph_adc_voltage_acc >> 2;
+    ADC1->CSR = ADC1_IT_EOCIE | (uint8_t)(_s_adc_channel);
+    ADC1_Cmd(ENABLE);
 }
 
 void UART2_TXIRQHandler() __interrupt(UART2_TXIRQHANDLER) {
@@ -124,6 +150,9 @@ void periph_atom_start() { disableInterrupts(); }
 void periph_atom_end() { enableInterrupts(); }
 
 uint16_t periph_get_adc_voltage() { return s_periph_adc_voltage; }
+uint16_t periph_get_adc_temperature() { return s_periph_adc_temperature; }
+uint8_t periph_get_adc_throttle_ratio() { return s_periph_adc_throttle_ratio; }
+uint8_t periph_get_adc_brake_ratio() { return s_periph_adc_brake_ratio; }
 
 ePeriphButton periph_get_buttons() {
     ePeriphButton _res = PeriphButton__None;
@@ -140,7 +169,6 @@ void periph_set_power_up(bool power_up) { _gpio_write(POWER_UP, power_up); }
 
 void periph_set_backlight_pwm_duty_cycle(uint8_t duty_cycle) { TIM1_SetCompare4(UINT8_MAX - duty_cycle); }
 
-void periph_set_unknown(bool vdd) { _gpio_write(HT1622_VDD, vdd); }
 void periph_set_ht1622_cs(bool cs) { _gpio_write(HT1622_CS, cs); }
 void periph_set_ht1622_write(bool write) { _gpio_write(HT1622_WRITE, write); }
 void periph_set_ht1622_read(bool read) { _gpio_write(HT1622_READ, read); }

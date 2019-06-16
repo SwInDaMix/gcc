@@ -92,6 +92,7 @@ typedef void (*periph_pas_callback_t)();
 typedef void (*periph_speed_callback_t)();
 typedef void (*periph_brake_callback_t)(bool is_braking);
 typedef void (*periph_uart_on_received_callback_t)(uint8_t byte);
+typedef uint8_t (*periph_uart_on_transmit_callback_t)();
 
 void TIM1_UPD_OVF_TRG_BRK_IRQHandler() __interrupt(TIM1_UPD_OVF_TRG_BRK_IRQHANDLER);
 void ADC1_IRQHandler() __interrupt(ADC1_IRQHANDLER);
@@ -101,6 +102,9 @@ void EXTI_PORTD_IRQHandler(void) __interrupt(EXTI_PORTD_IRQHANDLER);
 void UART2_IRQHandler(void) __interrupt(UART2_IRQHANDLER);
 
 void periph_init();
+
+void periph_atom_start();
+void periph_atom_end();
 
 void periph_set_bldc_pwm_overflow_callback(periph_bldc_pwm_overflow_callback_t callback);
 uint8_t periph_get_bldc_hall_sensors();
@@ -132,7 +136,10 @@ void periph_set_headlight(bool is_enabled);
 void periph_set_taillight_pwm_duty_cycle(uint8_t duty_cycle);
 
 void periph_uart_set_on_received_callback(periph_uart_on_received_callback_t callback);
+void periph_uart_set_on_transmit_callback(periph_uart_on_transmit_callback_t callback);
 void periph_uart_putbyte(uint8_t byte);
 
-void periph_wdt_enable();
+void periph_eeprom_read(void *dst, uint16_t offset, size_t size);
+void periph_eeprom_write(void const *src, uint16_t offset, size_t size);
+
 void periph_wdt_reset();

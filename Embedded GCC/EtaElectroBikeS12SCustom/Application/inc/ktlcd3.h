@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "periph.h"
+#include "network.h"
 
 #define ktlcd3_sendbyte(byte) periph_uart_putbyte(byte)
 
@@ -61,15 +62,6 @@ typedef enum {
     KTLCD3_AssistLevel5 = 5,
     KTLCD3_AssistLevelWalk = 6,
 } eKTLCD3_AssistLevel;
-
-typedef enum {
-    KTLCD3_MotorPhase0,
-    KTLCD3_MotorPhase60,
-    KTLCD3_MotorPhase120,
-    KTLCD3_MotorPhase180,
-    KTLCD3_MotorPhase240,
-    KTLCD3_MotorPhase300
-} eKTLCD3_MotorPhase;
 
 typedef enum {
     KTLCD3_MaxCurrent_100,
@@ -188,13 +180,13 @@ eKTLCD3_AssistLevel ktlcd3_get_assist_level();
 uint8_t ktlcd3_get_assist_level_duty_cycle(eKTLCD3_AssistLevel assist_level);
 uint8_t ktlcd3_get_motor_poluses();
 eKTLCD3_WheelSize ktlcd3_get_wheel_size();
-float ktlcd3_get_wheel_size_circumference(eKTLCD3_WheelSize wheel_size);
+uint16_t ktlcd3_get_wheel_size_circumference(eKTLCD3_WheelSize wheel_size);
 uint8_t ktlcd3_get_max_speed();
 uint8_t ktlcd3_get_wheel_speed_pulses_per_revolution();
 bool ktlcd3_get_ignore_pas_gear_ratio();
 bool ktlcd3_get_throttle_when_moving();
 uint8_t ktlcd3_get_throttle_startup_settings();
-eKTLCD3_MotorPhase ktlcd3_get_motor_phase();
+eNetworkMotorPhase ktlcd3_get_motor_phase();
 uint8_t ktlcd3_get_handlebar_function();
 bool ktlcd3_get_cruise_control();
 eKTLCD3_MaxCurrent ktlcd3_get_max_current();
