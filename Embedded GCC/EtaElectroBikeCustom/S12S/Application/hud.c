@@ -71,7 +71,7 @@ void hud_cycle(sSettings const *settings, sControls const *controls, sSensors co
 
         // calc speed by wheel rotation period
         _wheel_rotation_period = 65535;
-        if (_erps > 0) _wheel_rotation_period = (uint16_t)(1000LL * settings->motor_polus_pairs / _erps);
+        if (_erps > 0) _wheel_rotation_period = (uint16_t)(1000LL * settings->motor_settings.pole_pairs / _erps);
 
         // display motor power by motor current
         _motor_current_filtered = sensors->motor_current_filtered;

@@ -38,5 +38,5 @@ WARNINGS +=\
 
 REBUILD_FORCING_MAKEFILES += Makefile_common.mkinc
 
-include Config/Makefile_config.mkinc
-include Application/Makefile_application.mkinc
+include $(PRJ)/Config/Makefile_config.mkinc
+include $(PRJ)/Application/Makefile_application.mkinc

@@ -75,8 +75,8 @@ void drv_cycle(sSettings const *settings, sControls const *controls, sSensors co
                 if(s_is_cruise_control_idle) { s_is_cruise_control_idle = false; s_cruise_control_duty_cycle = 0; }
 
                 // calc max speed we can drive
-                _erps_limit = settings->erps_limit;
-                if (controls->is_walking) _erps_limit = (uint16_t)((DRV_WALK_SPEED_KMH * settings->motor_polus_pairs / 3.6 / settings->wheel_circumference) + 0.5f);
+                _erps_limit = settings->motor_settings.max_erps;
+                if (controls->is_walking) _erps_limit = (uint16_t)((DRV_WALK_SPEED_KMH * settings->motor_settings.pole_pairs / 3.6 / settings->motor_settings.wheel_circumference) + 0.5f);
 
                 if (sensors->motor_current > _current_limit) {
                     // if current is above the limited, then decrease (for acceleration, or increase for ebraking) duty cycle by acceleration ramp

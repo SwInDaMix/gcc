@@ -1,4 +1,4 @@
-APPLICATION_DIR = Application
+APPLICATION_DIR = $(PRJ)/Application
 
 VERY_COMMON_FLAGS += -DVER_APP="\"1.0.0001\""
 

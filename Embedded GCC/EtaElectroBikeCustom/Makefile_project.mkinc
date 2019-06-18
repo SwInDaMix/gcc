@@ -6,11 +6,11 @@ CROSS=sd
 ARCH=stm8
 PLATFORM=NATIVE
 
-BIN_DIR = bin
-EXTRN_OBJ_DIR = obj_extrn
-PRE_OBJ_DIR = obj_pre
-OBJ_DIR = obj
-TARGET = $(BIN_DIR)/EtaElectroBikeS12SCustom
+BIN_DIR = $(PRJ)/bin
+EXTRN_OBJ_DIR = $(PRJ)/obj_extrn
+PRE_OBJ_DIR = $(PRJ)/obj_pre
+OBJ_DIR = $(PRJ)/obj
+TARGET = $(BIN_DIR)/EtaElectroBikeCustom_$(PRJ)
 DEBUG = --debug
 OPTIM = --opt-code-speed
 
@@ -32,7 +32,7 @@ LST_FLAGS +=\
 
 WARNINGS +=\
 
-REBUILD_FORCING_MAKEFILES += Makefile.mk
+REBUILD_FORCING_MAKEFILES += Makefile_$(PRJ).mk
 
 .PHONY : all
 all : build
