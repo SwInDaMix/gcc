@@ -16,14 +16,14 @@
 static uint8_t Frames0_RxBuffer[FRAMES0_RX_BUFFER_SIZE];
 #else
 #define FRAMES0_RX_BUFFER_SIZE 0
-#define Frames0_RxBuffer NULL
+#define Frames0_RxBuffer nullptr
 #endif
 #if FRAMES0_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES0_TX_BUFFER_SIZE (1 << FRAMES0_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames0_TxBuffer[FRAMES0_TX_BUFFER_SIZE];
 #else
 #define FRAMES0_TX_BUFFER_SIZE 0
-#define Frames0_TxBuffer NULL
+#define Frames0_TxBuffer nullptr
 #endif
 #define FRAMES_PERIPHS FRAMES0_PERIPH
 #define FRAMES_IRQS FRAMES0_IRQ
@@ -39,14 +39,14 @@ static uint8_t Frames0_TxBuffer[FRAMES0_TX_BUFFER_SIZE];
 static uint8_t Frames1_RxBuffer[FRAMES1_RX_BUFFER_SIZE];
 #else
 #define FRAMES1_RX_BUFFER_SIZE 0
-#define Frames1_RxBuffer NULL
+#define Frames1_RxBuffer nullptr
 #endif
 #if FRAMES1_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES1_TX_BUFFER_SIZE (1 << FRAMES1_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames1_TxBuffer[FRAMES1_TX_BUFFER_SIZE];
 #else
 #define FRAMES1_TX_BUFFER_SIZE 0
-#define Frames1_TxBuffer NULL
+#define Frames1_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -68,14 +68,14 @@ static uint8_t Frames1_TxBuffer[FRAMES1_TX_BUFFER_SIZE];
 static uint8_t Frames2_RxBuffer[FRAMES2_RX_BUFFER_SIZE];
 #else
 #define FRAMES2_RX_BUFFER_SIZE 0
-#define Frames2_RxBuffer NULL
+#define Frames2_RxBuffer nullptr
 #endif
 #if FRAMES2_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES2_TX_BUFFER_SIZE (1 << FRAMES2_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames2_TxBuffer[FRAMES2_TX_BUFFER_SIZE];
 #else
 #define FRAMES2_TX_BUFFER_SIZE 0
-#define Frames2_TxBuffer NULL
+#define Frames2_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -97,14 +97,14 @@ static uint8_t Frames2_TxBuffer[FRAMES2_TX_BUFFER_SIZE];
 static uint8_t Frames3_RxBuffer[FRAMES3_RX_BUFFER_SIZE];
 #else
 #define FRAMES3_RX_BUFFER_SIZE 0
-#define Frames3_RxBuffer NULL
+#define Frames3_RxBuffer nullptr
 #endif
 #if FRAMES3_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES3_TX_BUFFER_SIZE (1 << FRAMES3_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames3_TxBuffer[FRAMES3_TX_BUFFER_SIZE];
 #else
 #define FRAMES3_TX_BUFFER_SIZE 0
-#define Frames3_TxBuffer NULL
+#define Frames3_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -126,14 +126,14 @@ static uint8_t Frames3_TxBuffer[FRAMES3_TX_BUFFER_SIZE];
 static uint8_t Frames4_RxBuffer[FRAMES4_RX_BUFFER_SIZE];
 #else
 #define FRAMES4_RX_BUFFER_SIZE 0
-#define Frames4_RxBuffer NULL
+#define Frames4_RxBuffer nullptr
 #endif
 #if FRAMES4_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES4_TX_BUFFER_SIZE (1 << FRAMES4_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames4_TxBuffer[FRAMES4_TX_BUFFER_SIZE];
 #else
 #define FRAMES4_TX_BUFFER_SIZE 0
-#define Frames4_TxBuffer NULL
+#define Frames4_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -155,14 +155,14 @@ static uint8_t Frames4_TxBuffer[FRAMES4_TX_BUFFER_SIZE];
 static uint8_t Frames5_RxBuffer[FRAMES5_RX_BUFFER_SIZE];
 #else
 #define FRAMES5_RX_BUFFER_SIZE 0
-#define Frames5_RxBuffer NULL
+#define Frames5_RxBuffer nullptr
 #endif
 #if FRAMES5_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES5_TX_BUFFER_SIZE (1 << FRAMES5_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames5_TxBuffer[FRAMES5_TX_BUFFER_SIZE];
 #else
 #define FRAMES5_TX_BUFFER_SIZE 0
-#define Frames5_TxBuffer NULL
+#define Frames5_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -184,14 +184,14 @@ static uint8_t Frames5_TxBuffer[FRAMES5_TX_BUFFER_SIZE];
 static uint8_t Frames6_RxBuffer[FRAMES6_RX_BUFFER_SIZE];
 #else
 #define FRAMES6_RX_BUFFER_SIZE 0
-#define Frames6_RxBuffer NULL
+#define Frames6_RxBuffer nullptr
 #endif
 #if FRAMES6_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES6_TX_BUFFER_SIZE (1 << FRAMES6_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames6_TxBuffer[FRAMES6_TX_BUFFER_SIZE];
 #else
 #define FRAMES6_TX_BUFFER_SIZE 0
-#define Frames6_TxBuffer NULL
+#define Frames6_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS
@@ -213,14 +213,14 @@ static uint8_t Frames6_TxBuffer[FRAMES6_TX_BUFFER_SIZE];
 static uint8_t Frames7_RxBuffer[FRAMES7_RX_BUFFER_SIZE];
 #else
 #define FRAMES7_RX_BUFFER_SIZE 0
-#define Frames7_RxBuffer NULL
+#define Frames7_RxBuffer nullptr
 #endif
 #if FRAMES7_TX_BUFFER_SIZESHIFT > 0
 #define FRAMES7_TX_BUFFER_SIZE (1 << FRAMES7_TX_BUFFER_SIZESHIFT)
 static uint8_t Frames7_TxBuffer[FRAMES7_TX_BUFFER_SIZE];
 #else
 #define FRAMES7_TX_BUFFER_SIZE 0
-#define Frames7_TxBuffer NULL
+#define Frames7_TxBuffer nullptr
 #endif
 #undef FRAMES_PERIPHS
 #undef FRAMES_IRQS

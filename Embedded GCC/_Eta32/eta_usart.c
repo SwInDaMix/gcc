@@ -13,14 +13,14 @@
 static char USART0_RxBuffer[USART0_RX_BUFFER_SIZE];
 #else
 #define USART0_RX_BUFFER_SIZE 0
-#define USART0_RxBuffer NULL
+#define USART0_RxBuffer nullptr
 #endif
 #if USART0_TX_BUFFER_SIZESHIFT > 0
 #define USART0_TX_BUFFER_SIZE (1 << USART0_TX_BUFFER_SIZESHIFT)
 static char USART0_TxBuffer[USART0_TX_BUFFER_SIZE];
 #else
 #define USART0_TX_BUFFER_SIZE 0
-#define USART0_TxBuffer NULL
+#define USART0_TxBuffer nullptr
 #endif
 #define USART_PERIPHS USART0_PERIPH
 #define USART_IRQS USART0_IRQ
@@ -36,14 +36,14 @@ static char USART0_TxBuffer[USART0_TX_BUFFER_SIZE];
 static char USART1_RxBuffer[USART1_RX_BUFFER_SIZE];
 #else
 #define USART1_RX_BUFFER_SIZE 0
-#define USART1_RxBuffer NULL
+#define USART1_RxBuffer nullptr
 #endif
 #if USART1_TX_BUFFER_SIZESHIFT > 0
 #define USART1_TX_BUFFER_SIZE (1 << USART1_TX_BUFFER_SIZESHIFT)
 static char USART1_TxBuffer[USART1_TX_BUFFER_SIZE];
 #else
 #define USART1_TX_BUFFER_SIZE 0
-#define USART1_TxBuffer NULL
+#define USART1_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -65,14 +65,14 @@ static char USART1_TxBuffer[USART1_TX_BUFFER_SIZE];
 static char USART2_RxBuffer[USART2_RX_BUFFER_SIZE];
 #else
 #define USART2_RX_BUFFER_SIZE 0
-#define USART2_RxBuffer NULL
+#define USART2_RxBuffer nullptr
 #endif
 #if USART2_TX_BUFFER_SIZESHIFT > 0
 #define USART2_TX_BUFFER_SIZE (1 << USART2_TX_BUFFER_SIZESHIFT)
 static char USART2_TxBuffer[USART2_TX_BUFFER_SIZE];
 #else
 #define USART2_TX_BUFFER_SIZE 0
-#define USART2_TxBuffer NULL
+#define USART2_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -94,14 +94,14 @@ static char USART2_TxBuffer[USART2_TX_BUFFER_SIZE];
 static char USART3_RxBuffer[USART3_RX_BUFFER_SIZE];
 #else
 #define USART3_RX_BUFFER_SIZE 0
-#define USART3_RxBuffer NULL
+#define USART3_RxBuffer nullptr
 #endif
 #if USART3_TX_BUFFER_SIZESHIFT > 0
 #define USART3_TX_BUFFER_SIZE (1 << USART3_TX_BUFFER_SIZESHIFT)
 static char USART3_TxBuffer[USART3_TX_BUFFER_SIZE];
 #else
 #define USART3_TX_BUFFER_SIZE 0
-#define USART3_TxBuffer NULL
+#define USART3_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -123,14 +123,14 @@ static char USART3_TxBuffer[USART3_TX_BUFFER_SIZE];
 static char USART4_RxBuffer[USART4_RX_BUFFER_SIZE];
 #else
 #define USART4_RX_BUFFER_SIZE 0
-#define USART4_RxBuffer NULL
+#define USART4_RxBuffer nullptr
 #endif
 #if USART4_TX_BUFFER_SIZESHIFT > 0
 #define USART4_TX_BUFFER_SIZE (1 << USART4_TX_BUFFER_SIZESHIFT)
 static char USART4_TxBuffer[USART4_TX_BUFFER_SIZE];
 #else
 #define USART4_TX_BUFFER_SIZE 0
-#define USART4_TxBuffer NULL
+#define USART4_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -152,14 +152,14 @@ static char USART4_TxBuffer[USART4_TX_BUFFER_SIZE];
 static char USART5_RxBuffer[USART5_RX_BUFFER_SIZE];
 #else
 #define USART5_RX_BUFFER_SIZE 0
-#define USART5_RxBuffer NULL
+#define USART5_RxBuffer nullptr
 #endif
 #if USART5_TX_BUFFER_SIZESHIFT > 0
 #define USART5_TX_BUFFER_SIZE (1 << USART5_TX_BUFFER_SIZESHIFT)
 static char USART5_TxBuffer[USART5_TX_BUFFER_SIZE];
 #else
 #define USART5_TX_BUFFER_SIZE 0
-#define USART5_TxBuffer NULL
+#define USART5_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -181,14 +181,14 @@ static char USART5_TxBuffer[USART5_TX_BUFFER_SIZE];
 static char USART6_RxBuffer[USART6_RX_BUFFER_SIZE];
 #else
 #define USART6_RX_BUFFER_SIZE 0
-#define USART6_RxBuffer NULL
+#define USART6_RxBuffer nullptr
 #endif
 #if USART6_TX_BUFFER_SIZESHIFT > 0
 #define USART6_TX_BUFFER_SIZE (1 << USART6_TX_BUFFER_SIZESHIFT)
 static char USART6_TxBuffer[USART6_TX_BUFFER_SIZE];
 #else
 #define USART6_TX_BUFFER_SIZE 0
-#define USART6_TxBuffer NULL
+#define USART6_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS
@@ -210,14 +210,14 @@ static char USART6_TxBuffer[USART6_TX_BUFFER_SIZE];
 static char USART7_RxBuffer[USART7_RX_BUFFER_SIZE];
 #else
 #define USART7_RX_BUFFER_SIZE 0
-#define USART7_RxBuffer NULL
+#define USART7_RxBuffer nullptr
 #endif
 #if USART7_TX_BUFFER_SIZESHIFT > 0
 #define USART7_TX_BUFFER_SIZE (1 << USART7_TX_BUFFER_SIZESHIFT)
 static char USART7_TxBuffer[USART7_TX_BUFFER_SIZE];
 #else
 #define USART7_TX_BUFFER_SIZE 0
-#define USART7_TxBuffer NULL
+#define USART7_TxBuffer nullptr
 #endif
 #undef USART_PERIPHS
 #undef USART_IRQS

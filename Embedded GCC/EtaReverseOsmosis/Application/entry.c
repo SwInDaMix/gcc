@@ -95,7 +95,7 @@ static uint32_t volatile GlobalTicks;
 
 static sLCD volatile LCD;
 
-static sBuzzerQuant const volatile *BuzzerMelodyPtr;
+static sBuzzerQuant const *volatile BuzzerMelodyPtr;
 static int16_t volatile BuzzerQuantDuration;
 
 static eButton volatile BTN_Pressed;

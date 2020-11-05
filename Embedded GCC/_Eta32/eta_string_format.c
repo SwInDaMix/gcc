@@ -14,9 +14,11 @@ typedef enum {
 	INTERNALFLAG_SIGNPAD      = 0x04,
 	#endif
 	INTERNALFLAG_UNSIGNED     = 0x08,
-	INTERNALFLAG_SHORT        = 0x10,
+    INTERNALFLAG__TYPE        = 0x30,
+	INTERNALFLAG_SHORT        = 0x00,
 	#ifdef STDIO_ALLOWLONG
-	INTERNALFLAG_LONG         = 0x20,
+	INTERNALFLAG_LONG         = 0x10,
+    INTERNALFLAG_LONGLONG     = 0x20,
 	#endif
 	#ifdef STDIO_ALLOWFLOAT
 	INTERNALFLAG_DOUBLE       = 0x40,
@@ -62,7 +64,7 @@ uint32_t formatString(char const *fmt, va_list ap, sFmtStream *strm) {
 
 				/// nested routines
 				// formats and writes to the stream a character sequence with specified length
-				__extension__ auto void _write_str(const char *str, uint32_t len) {
+				__extension__ auto void _write_str(const char *str, uint16_t len) {
 					#ifdef STDIO_ALLOWALIGNMENT
 					if(_width > len) {
 						uint32_t _tofill = _width - len;
@@ -82,8 +84,18 @@ uint32_t formatString(char const *fmt, va_list ap, sFmtStream *strm) {
 					char _ibuf[STDIO_TMPBUFLEN]; char *_ibuf_ptr = _ibuf + sizeof(_ibuf);
 					stdio_int_t _ival;
 					#ifdef STDIO_ALLOWLONG
-					if((_flags & INTERNALFLAG_UNSIGNED)) _ival = (_flags & INTERNALFLAG_SHORT) ? (uint16_t)va_arg(ap, uint32_t) : ((_flags & INTERNALFLAG_LONG) ? va_arg(ap, uint64_t) : va_arg(ap, uint32_t));
-					else _ival = (_flags & INTERNALFLAG_SHORT) ? (int16_t)va_arg(ap, int32_t) : ((_flags & INTERNALFLAG_LONG) ? va_arg(ap, int64_t) : va_arg(ap, int32_t));
+                    sInternalFlags _type = _flags & INTERNALFLAG__TYPE;
+					if((_flags & INTERNALFLAG_UNSIGNED)) {
+                        if (_type == INTERNALFLAG_SHORT) _ival = (unsigned short)va_arg(ap, unsigned int);
+                        else if (_type == INTERNALFLAG_LONG) _ival = (unsigned long int)va_arg(ap, unsigned long int);
+					    else if (_type == INTERNALFLAG_LONGLONG) _ival = (unsigned long long)va_arg(ap, unsigned long long);
+					    else _ival = (unsigned int)va_arg(ap, unsigned int);
+					} else {
+                        if (_type == INTERNALFLAG_SHORT) _ival = (short)va_arg(ap, int);
+                        else if (_type == INTERNALFLAG_LONG) _ival = (long int)va_arg(ap, long int);
+                        else if (_type == INTERNALFLAG_LONGLONG) _ival = (long long)va_arg(ap, long long);
+                        else _ival = (int)va_arg(ap, int);
+                    }
 					#else
 					if((_flags & INTERNALFLAG_UNSIGNED)) _ival = (_flags & INTERNALFLAG_SHORT) ? (uint16_t)va_arg(ap, uint32_t) : va_arg(ap, uint32_t);
 					else _ival = (_flags & INTERNALFLAG_SHORT) ? (int16_t)va_arg(ap, int32_t) : va_arg(ap, int32_t);
@@ -181,7 +193,7 @@ uint32_t formatString(char const *fmt, va_list ap, sFmtStream *strm) {
 					// Parsing the size and "signed" flag
 					if(_c == 'h') { _c = *(++fmt); _flags |= INTERNALFLAG_SHORT; }
 					#ifdef STDIO_ALLOWLONG
-					else if(_c == 'l') { _c = *(++fmt); _flags |= INTERNALFLAG_LONG; }
+					else if(_c == 'l') { _c = *(++fmt); if(_c == 'l') { _c = *(++fmt); _flags |= INTERNALFLAG_LONGLONG; } else { _flags |= INTERNALFLAG_LONG; } }
 					#endif
 					#ifdef STDIO_ALLOWFLOAT
 					else if(_c == 'L') { _c = *(++fmt); _flags |= INTERNALFLAG_DOUBLE; }
@@ -241,4 +253,87 @@ uint32_t formatString(char const *fmt, va_list ap, sFmtStream *strm) {
 		else _putc(strm, _c);
 	}
 	return strm->length;
+}
+
+//------------------------------------------------------------------------------
+/// Stores the result of a formatted string into another string. Format
+/// arguments are given in a va_list instance.
+/// Return the number of characters written.
+/// \param buf     Destination string.
+/// \param len     Length of Destination string.
+/// \param fmt     Format string.
+/// \param ap      Argument list.
+//------------------------------------------------------------------------------
+signed int vsnprintf(char *buf, size_t len, const char *fmt, va_list ap) {
+
+	__extension__ void _putc_printf(sFmtStream *strm, char c) {
+		*buf++ = c;
+	}
+
+	sFmtStream _strm;
+	_strm.putc = _putc_printf; _strm.limit = len; _strm.flags = (sFormatFlags)0;
+	formatString(fmt, ap, &_strm); *buf = '\0';
+	return _strm.length;
+}
+
+//------------------------------------------------------------------------------
+/// Stores the result of a formatted string into another string. Format
+/// arguments are given in a va_list instance.
+/// Return the number of characters written.
+/// \param pString Destination string.
+/// \param length  Length of Destination string.
+/// \param pFormat Format string.
+/// \param ...     Other arguments
+//------------------------------------------------------------------------------
+signed int snprintf(char *pString, size_t length, const char *pFormat, ...) {
+	va_list ap; va_start(ap, pFormat);
+	signed int result = vsnprintf(pString, length, pFormat, ap);
+	va_end(ap);
+	return result;
+}
+
+//------------------------------------------------------------------------------
+/// Stores the result of a formatted string into another string. Format
+/// arguments are given in a va_list instance.
+/// Return the number of characters written.
+/// \param pString  Destination string.
+/// \param pFormat  Format string.
+/// \param ap       Argument list.
+//------------------------------------------------------------------------------
+signed int vsprintf(char *pString, const char *pFormat, va_list ap) { return vsnprintf(pString, FMTCFG_MAX_STRING_SIZE, pFormat, ap); }
+
+//------------------------------------------------------------------------------
+/// Outputs a formatted string on the DBGU stream. Format arguments are given
+/// in a va_list instance.
+/// \param pFormat  Format string
+/// \param ap  Argument list.
+//------------------------------------------------------------------------------
+signed int vprintf(const char *pFormat, va_list ap) {
+	return 0;
+}
+
+//------------------------------------------------------------------------------
+/// Outputs a formatted string on the DBGU stream, using a variable number of
+/// arguments.
+/// \param pFormat  Format string.
+//------------------------------------------------------------------------------
+signed int printf(const char *pFormat, ...) {
+	// Forward call to vprintf
+	va_list ap; va_start(ap, pFormat);
+	signed int result = vprintf(pFormat, ap);
+	va_end(ap);
+	return result;
+}
+
+//------------------------------------------------------------------------------
+/// Writes a formatted string inside another string.
+/// \param pStr  Storage string.
+/// \param pFormat  Format string.
+//------------------------------------------------------------------------------
+signed int sprintf(char *pStr, const char *pFormat, ...) {
+	// Forward call to vsprintf
+	va_list ap; va_start(ap, pFormat);
+	signed int result = vsprintf(pStr, pFormat, ap);
+	va_end(ap);
+	return result;
 }

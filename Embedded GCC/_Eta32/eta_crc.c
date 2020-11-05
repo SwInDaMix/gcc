@@ -3,6 +3,7 @@
  File Name : eta_crc.c
  ***********************************************************************/
 
+#include "stdperiph.h"
 #include "eta_crc.h"
 
 uint8_t crc8_update(uint8_t crc8, uint8_t data) {
@@ -42,4 +43,28 @@ uint32_t crc32(uint32_t crc32, void const *src, size_t size) {
 	uint8_t const *_src = (const uint8_t*)src;
 	while(size--) crc32 = crc32_update(crc32, *_src++);
 	return crc32;
+}
+
+uint32_t crc32_fast(uint32_t crc32, void const *src, size_t size) {
+    CRC_SetInitRegister(crc32);
+    CRC_ResetDR();
+    size_t _sz4 = size >> 2;
+    if (_sz4 && !(((uint32_t)src) & 3)) {
+        size -= _sz4 << 2;
+        uint32_t const *_ptr = src;
+        while (_sz4--) CRC_CalcCRC(*_ptr++);
+        src = _ptr;
+    }
+    size_t _sz2 = size >> 1;
+    if (_sz2 && !(((uint32_t)src) & 1)) {
+        size -= _sz2 << 1;
+        uint16_t const *_ptr = src;
+        while (_sz2--) CRC_CalcCRC16bits(*_ptr++);
+        src = _ptr;
+    }
+    if (size) {
+        uint8_t const *_ptr = src;
+        while (size--) CRC_CalcCRC8bits(*_ptr++);
+    }
+    return CRC_GetCRC();
 }

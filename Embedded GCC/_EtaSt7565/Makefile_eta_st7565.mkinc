@@ -1,0 +1,18 @@
+VERY_COMMON_FLAGS += -DVER_ETA_ST7565="\"1.0.0001\""
+
+INCLUDES += -I ../$(ETA_ST7565_DIR)/inc
+
+EXTRN_AS_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/*.S))
+EXTRN_C_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/*.c))
+EXTRN_CPP_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/*.cpp))
+EXTRN_RC_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/*.rc))
+EXTRN_DAT_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/dats/*.dat))
+#EXTRN_VFNT_SRCS += $(subst ../,,$(wildcard ../$(ETA_ST7565_DIR)/fonts/*.png))
+
+REBUILD_FORCING_MAKEFILES += ../$(ETA_ST7565_DIR)/Makefile_eta_st7565.mkinc
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA_ST7565_DIR)/inc/*.h)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA_ST7565_DIR)/inc/*.hpp)
+EXTRN_REBUILD_FORCING_FILES += $(wildcard ../$(ETA_ST7565_DIR)/inc/*.inc)
+EXTRN_RESOURCE_REBUILD_FORCING_FILES += $(wildcard ../$(ETA_ST7565_DIR)/rcfiles/*.*)
+
+DUMMY = 1

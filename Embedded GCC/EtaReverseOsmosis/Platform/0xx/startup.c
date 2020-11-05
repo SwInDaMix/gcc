@@ -290,7 +290,7 @@ void __attribute__ ((noreturn)) __attribute__ ((used)) Reset_Handler() {
 	while(true);
 }
 
-void _exit(int exitcode) {
+void __attribute__ ((noreturn)) _exit(int exitcode) {
 	DBG_PutFormat("_exit function called with code %d"NL, exitcode);
 	while(1);
 }

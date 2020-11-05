@@ -1,0 +1,45 @@
+menu: TestMenu "Test Caption Longest" {
+    action: "Test Action" TestAction
+    action: "Test Procedure" TestProcedure
+    action: "Test Clean Membrane 123123" TestCleanMembrane
+    action: "Settings..." Settings___
+    checkbox: "Test checkbox" TestCheckbox
+    menu: "Simple Menu" {
+        action: "Procedure 1" Proc1
+        action: "Procedure 2" Proc2
+    }
+    menu: "Submenu Test" {
+        action: "Sub Action" SubAction
+        action: "Sub Procedure" SubProcedure
+    }
+    choices: "Test Choices" TestChoice { "Short" "Medium" "Long" }
+    choices: "Test Long Choices 2" TestChoice2 { "Always Long" "1 per 2" "1 per 3" "1 per 4" "Never" }
+}
+
+dialog: TestDialog "Test dialog long caption" container: v SpreadEnd Spread 2 {
+    container: h SpreadEnd Spread 2 {
+        bitmap: icon_stop Center Center
+        container: v Center Center 1 {
+            text: "Test string 1" Center
+            text: "Test string 2" Center
+            text: *DialogVarText Center
+        }
+    }
+    container: h Center Center 2 {
+        button: "OK" OK
+        button: "Cancel" Cancel
+    }
+}
+
+dialog: FlashSurfaceCheck "Flash surface check" container: v SpreadEnd Spread 2 {
+    container: h SpreadEnd Spread 2 {
+        bitmap: icon_flash Center Center
+        container: v Center Center 1 {
+            text: *StepText Center
+            text: *StepDetails Center
+            text: *StepDetails2 Center
+        }
+    }
+    progress: 40  4 *StepProgress
+    progress_string: "Total" *TotalProgress
+}

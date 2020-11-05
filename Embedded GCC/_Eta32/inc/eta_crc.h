@@ -20,6 +20,8 @@ uint16_t crc16(uint16_t crc16, void const *src, size_t size);
 uint32_t crc32_update(uint32_t crc32, uint8_t data);
 uint32_t crc32(uint32_t crc32, void const *src, size_t size);
 
+uint32_t crc32_fast(uint32_t crc32, void const *src, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

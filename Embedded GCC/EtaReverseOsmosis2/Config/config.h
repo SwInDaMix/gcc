@@ -1,0 +1,85 @@
+/********************* (C) 2014 Eta Software House. ********************
+ Author    : Sw
+ File Name : config.h
+ ***********************************************************************/
+
+#pragma once
+
+#include "Types.h"
+#include "config_periph.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define YIELD() {  }
+
+#define REVOSM_LOWINLET_SWITCH_HIGHTANK_SWITCH
+#define REVOSM_LOWINLET_SWITCH_HIGHTANK_GAUGE
+#define REVOSM_LOWINLET_GAUGE_HIGHTANK_GAUGE
+
+// Std IO string formatter options
+#define STDIO_ALLOWALIGNMENT
+#define STDIO_ALLOWFILLCHAR
+#define STDIO_ALLOWLONG
+#define STDIO_ALLOWFLOAT
+#define STDIO_ALLOWSIGNPADS
+
+// Simple USART options
+#define USART0_PERIPH USART_MAIN
+#define USART0_IRQ USART_MAIN_IRQn
+#define USART0_RX_BUFFER_SIZESHIFT 8
+#define USART0_TX_BUFFER_SIZESHIFT 6
+
+// Framelike USART options
+//#define FRAMES_SYNC_SIGNATURE_SIZESHIFT 3
+//#define FRAMES_SYNC_SIGNATURE 0x72, 0xC5, 0xD9, 0xAC, 0x86, 0xE3, 0xBA, 0x9E
+//#define FRAMES_STUBBYTE 0xAA
+//
+//#define FRAMES_8B
+//#define FRAMES0_PERIPH USART_MAIN
+//#define FRAMES0_IRQ USART_MAIN_IRQn
+//#define FRAMES0_RX_BUFFER_SIZESHIFT 8
+//#define FRAMES0_TX_BUFFER_SIZESHIFT 8
+//#define FRAMES_YIELD() YIELD()
+
+#define USART_DBG 0
+//#define FRAMES_DBG 0
+#define USART_BAUDRATE 115200
+#define USART_YIELD() YIELD()
+
+#define GLCD_SPI_PERIPH SPI_LCD_FLASH
+#define GLCD_CS_PORT LCD_CS_PORT
+#define GLCD_CS_PIN LCD_CS_PIN
+#define GLCD_RST_PORT LCD_RST_PORT
+#define GLCD_RST_PIN LCD_RST_PIN
+#define GLCD_A0_PORT LCD_A0_PORT
+#define GLCD_A0_PIN LCD_A0_PIN
+
+#define SPIFLASH_SPI_PERIPH SPI_LCD_FLASH
+#define SPIFLASH_CS_PORT FLASH_CS_PORT
+#define SPIFLASH_CS_PIN FLASH_CS_PIN
+
+#define SPIFLASH_ID 0x1720C2
+#define SPIFLASH_PAGES_PER_SECTOR 16
+#define SPIFLASH_SECTORS_PER_BLOCK 8
+#define SPIFLASH_BLOCKS_PER_CHIP 256
+#define SPIFLASH_PAGE_SIZE 256
+#define SPIFLASH_PAGES_PER_BLOCK (SPIFLASH_PAGES_PER_SECTOR * SPIFLASH_SECTORS_PER_BLOCK)
+#define SPIFLASH_PAGES_PER_CHIP (SPIFLASH_PAGES_PER_BLOCK * SPIFLASH_BLOCKS_PER_CHIP)
+#define SPIFLASH_SECTOR_SIZE (SPIFLASH_PAGE_SIZE * SPIFLASH_PAGES_PER_SECTOR)
+#define SPIFLASH_BLOCK_SIZE (SPIFLASH_SECTOR_SIZE * SPIFLASH_SECTORS_PER_BLOCK)
+#define SPIFLASH_CHIP_SIZE (SPIFLASH_BLOCK_SIZE * SPIFLASH_BLOCKS_PER_CHIP)
+
+#define INPUT_BUTTON_STABLE_TICKS (PERIODIC_TICKS_PER_SECOND / 500)
+#define INPUT_ENCODER_STABLE_TICKS (PERIODIC_TICKS_PER_SECOND / 2000)
+
+extern void Assert(char const *msg, int n);
+
+#define _ASSERTW(a)
+#define _ASSERT(a) if(!(a)) { Assert(__FILE__, __LINE__); }
+#define _ASSERT_VALID(a) if(!(a)) { Assert(__FILE__, __LINE__); }
+
+#ifdef __cplusplus
+}
+#endif

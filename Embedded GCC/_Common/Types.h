@@ -236,6 +236,10 @@ extern "C" {
 #define wordfrombytes(a, b) (((b) << 8) | (a))
 #endif
 
+#ifndef xchg
+#define xchg(a, b) { typeof(a) _t = a; a = b; b = _t; }
+#endif
+
 #ifdef __cplusplus
 }
 #endif

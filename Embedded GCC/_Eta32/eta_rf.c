@@ -292,17 +292,17 @@ void RF_TransmitterAddress(sRF_SPI const *rfspi, uint8_t const *address, bool is
 bool RF_PackageTransmit(sRF_SPI const *rfspi, bool is_ack, void const *src, uint8_t len) {
 	// loop while transmitter buffer is full
 	while(RF_IsTransmitterBufferFull(rfspi));
-	// packet with acknowlage
+	// packet with acknowledge
 	if(is_ack) {
 		RF_WriteCmdBlock(rfspi, RFCommand_W_TX_PAYLOAD, src, len);
-		// wait for acknowlage or MAX_RT error
+		// wait for acknowledge or MAX_RT error
 		while(!rfspi->IRQ());
 	}
-	// no acknowlage packet
+	// no acknowledge packet
 	else {
 		RF_WriteCmdBlock(rfspi, RFCommand_W_TX_PAYLOAD_NO_ACK, src, len);
 		uint32_t _retries = 6000;
-		// wait for transmition to complete
+		// wait for transmission to complete
 		while(!rfspi->IRQ() && _retries--) _delay_us(10);
 	}
 	eRF_Status _status = RF_StatusReadClear(rfspi, RFStatus_MAX_RT | RFStatus_TX_DS);

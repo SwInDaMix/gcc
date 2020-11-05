@@ -21,9 +21,8 @@ typedef struct sFmtStream sFmtStream;
 struct sFmtStream {
 	void (*putc)(sFmtStream *strm, char c);
 	uint32_t limit;
-	uint32_t length;
+	uint16_t length;
 	sFormatFlags flags;
-	void *ptr;
 };
 
 uint32_t formatString(char const *fmt, va_list ap, sFmtStream *strm);

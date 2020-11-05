@@ -20,6 +20,9 @@ bin_*
 *.ih1
 *.ih8
 *.ih16
+*.hfont
+*.hbmp
+*.hstgui
 *.stackdump
 
 

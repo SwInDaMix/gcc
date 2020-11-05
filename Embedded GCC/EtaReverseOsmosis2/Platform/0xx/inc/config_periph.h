@@ -1,0 +1,100 @@
+/********************* (C) 2014 Eta Software House. ********************
+ Author    : Sw
+ File Name : config_periph.h
+ ***********************************************************************/
+
+#pragma once
+
+#include "Types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define F_CPU 48000000UL
+#define F_LSI 40000
+#define V_CPU 3300
+#define PERIODIC_TICKS_PER_SECOND 10000
+
+#define TIM_DELAY TIM16
+
+#define USART_MAIN USART1
+#define USART_MAIN_TX_PORT GPIOA
+#define USART_MAIN_TX_PIN GPIO_PinSource9
+#define USART_MAIN_TX_AF GPIO_AF_1
+#define USART_MAIN_RX_PORT GPIOA
+#define USART_MAIN_RX_PIN GPIO_PinSource10
+#define USART_MAIN_RX_AF GPIO_AF_1
+#define USART_MAIN_PINCFG_A GPIO_Pin_9 | GPIO_Pin_10
+#define USART_MAIN_IRQn USART1_IRQn
+#define USART_MAIN_IRQHandler USART1_IRQHandler
+
+#define SPI_LCD_FLASH SPI1
+#define SPI_LCD_FLASH_SCK_PORT GPIOB
+#define SPI_LCD_FLASH_SCK_PIN GPIO_PinSource3
+#define SPI_LCD_FLASH_SCK_AF GPIO_AF_0
+#define SPI_LCD_FLASH_MISO_PORT GPIOB
+#define SPI_LCD_FLASH_MISO_PIN GPIO_PinSource4
+#define SPI_LCD_FLASH_MISO_AF GPIO_AF_0
+#define SPI_LCD_FLASH_MOSI_PORT GPIOB
+#define SPI_LCD_FLASH_MOSI_PIN GPIO_PinSource5
+#define SPI_LCD_FLASH_MOSI_AF GPIO_AF_0
+#define SPI_LCD_FLASH_PINCFG_B GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5
+
+#define LCD_CS_PORT GPIOA
+#define LCD_CS_PIN GPIO_PinSource11
+#define LCD_RST_PORT GPIOA
+#define LCD_RST_PIN GPIO_PinSource12
+#define LCD_A0_PORT GPIOB
+#define LCD_A0_PIN GPIO_PinSource6
+#define LCD_PINCFG_A GPIO_Pin_11 | GPIO_Pin_12
+#define LCD_PINCFG_B GPIO_Pin_6
+#define TIM_LCD_BL TIM17
+#define TIM_LCD_BL_PORT GPIOB
+#define TIM_LCD_BL_PIN GPIO_PinSource7
+#define TIM_LCD_BL_AF GPIO_AF_2
+#define TIM_LCD_PINCFG_B GPIO_Pin_7
+#define TIM_LCD_BL_PRESCALER 2
+#define TIM_LCD_BL_PERIOD (F_CPU / TIM_LCD_BL_PRESCALER / PERIODIC_TICKS_PER_SECOND)
+#define TIM_LCD_BL_IRQn TIM17_IRQn
+#define TIM_LCD_BL_IRQHandler TIM17_IRQHandler
+
+#define FLASH_CS_PORT GPIOA
+#define FLASH_CS_PIN GPIO_PinSource15
+#define FLASH_PINCFG_A GPIO_Pin_15
+
+#define BUZZER_TIM TIM14
+#define BUZZER_PORT GPIOB
+#define BUZZER_PIN GPIO_PinSource1
+#define BUZZER_AF GPIO_AF_0
+#define BUZZER_PINCFG_B GPIO_Pin_1
+
+#define VALVE_WATER_INLET_PORT GPIOA
+#define VALVE_WATER_INLET_PIN GPIO_PinSource3
+#define VALVE_CLEAN_MEMBRANE_PORT GPIOA
+#define VALVE_CLEAN_MEMBRANE_PIN GPIO_PinSource4
+#define VALVE_PINCFG_A GPIO_Pin_3 | GPIO_Pin_4
+
+#define SENS_WATER_FLOW_METER_PORT GPIOA
+#define SENS_WATER_FLOW_METER_PIN GPIO_PinSource0
+#define SENS_LOWINLET_PRESSURE_PORT GPIOA
+#define SENS_LOWINLET_PRESSURE_PIN GPIO_PinSource1
+#define SENS_HIGHTANK_PRESSURE_PORT GPIOA
+#define SENS_HIGHTANK_PRESSURE_PIN GPIO_PinSource2
+#define SENS_PINCFG_A GPIO_Pin_0 | GPIO_Pin_1
+#define SENS_ADC_PINCFG_A GPIO_Pin_2
+
+#define BTN_ESCAPE_PORT GPIOB
+#define BTN_ESCAPE_PIN GPIO_PinSource0
+#define BTN_ENTER_PORT GPIOA
+#define BTN_ENTER_PIN GPIO_PinSource5
+#define BTN_ENCODER_A_PORT GPIOA
+#define BTN_ENCODER_A_PIN GPIO_PinSource7
+#define BTN_ENCODER_B_PORT GPIOA
+#define BTN_ENCODER_B_PIN GPIO_PinSource6
+#define BTN_PINCFG_A GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7
+#define BTN_PINCFG_B GPIO_Pin_0
+
+#ifdef __cplusplus
+}
+#endif
